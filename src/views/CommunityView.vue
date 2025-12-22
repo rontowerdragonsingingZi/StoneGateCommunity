@@ -1,6 +1,6 @@
 <template>
   <div class="community-container">
-    <a-layout style="height: 100vh;">
+    <a-layout>
       <!-- 侧边栏：极简工具栏风格 -->
       <a-layout-sider 
         theme="dark" 
@@ -73,8 +73,8 @@
         </a-layout-header>
 
         <a-layout-content class="content-wrapper">
-          <a-row :gutter="24" style="height: 100%;">
-            <a-col :span="17" style="height: 100%; display: flex; flex-direction: column;">
+          <a-row :gutter="24">
+            <a-col :span="17">
               
               <!-- 帖子列表：日志流风格 -->
               <div v-if="activeKey !== '4'" class="log-feed">
@@ -211,7 +211,7 @@ const trendingTopics = ref([
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
 
 .community-container {
-  height: 100vh;
+  min-height: 100vh;
   background: #0d1117; /* GitHub Dark Dimmed 风格 */
   color: #c9d1d9;
   font-family: 'JetBrains Mono', 'Segoe UI', monospace;
@@ -367,7 +367,6 @@ const trendingTopics = ref([
 /* 内容区 */
 .content-wrapper {
   padding: 24px;
-  overflow-y: auto;
 }
 
 /* 日志流 (Feed) */
