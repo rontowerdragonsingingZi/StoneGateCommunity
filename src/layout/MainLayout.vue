@@ -3,6 +3,7 @@
     <a-layout-header class="nav-header" :class="{ 'transparent': isHome }">
       <div class="header-content">
         <div class="logo" @click="$router.push('/')">
+           <img src="/StoneGateCommunityLogo.png" alt="Logo" class="logo-img" />
            <span class="logo-text">STONE GATE</span>
         </div>
         <a-menu mode="horizontal" :selected-keys="selectedKeys" @menu-item-click="handleMenuClick" class="custom-menu">
@@ -89,6 +90,13 @@ const handleMenuClick = (key) => {
   margin-right: 40px;
 }
 
+.logo-img {
+  height: 40px;
+  width: auto;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
 .logo-text {
   font-family: 'Share Tech Mono', monospace;
   font-size: 1.5rem;
@@ -96,6 +104,7 @@ const handleMenuClick = (key) => {
   color: #fff;
   letter-spacing: 2px;
   text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+  vertical-align: middle;
 }
 
 /* 自定义菜单样式以适配暗色背景 */
