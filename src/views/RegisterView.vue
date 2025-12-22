@@ -4,13 +4,7 @@
     <div class="scanline"></div>
     
     <div class="terminal-content">
-      <div v-if="!systemReady" class="boot-sequence">
-        <p v-for="(line, index) in bootLines" :key="index" class="boot-line">
-          {{ line }}
-        </p>
-      </div>
-
-      <div v-else class="login-interface">
+      <div class="login-interface">
         <div class="ascii-logo">
 <pre>
    _____ _______ ____  _   _ ______ 
@@ -25,8 +19,8 @@
         </div>
 
         <div class="system-status">
-          <p>> 系统: 在线</p>
-          <p>> 连接: 加密 (SG-VPN)</p>
+          <p>> 状态: 招募新成员</p>
+          <p>> 协议: 开放 (需要审核)</p>
           <p>> 变动率: 1.048596%</p>
         </div>
 
@@ -35,31 +29,48 @@
             <span class="prompt">root@fg-lab:~$</span>
             <span class="cmd-label">代号:</span>
             <input 
-              v-model="loginForm.username" 
+              v-model="registerForm.username" 
               type="text" 
               class="terminal-input" 
               autofocus 
               spellcheck="false"
-              @keyup.enter="focusPassword"
+            />
+          </div>
+          <div class="input-group">
+            <span class="prompt">root@fg-lab:~$</span>
+            <span class="cmd-label">D-Mail:</span>
+            <input 
+              v-model="registerForm.email" 
+              type="email" 
+              class="terminal-input"
+              spellcheck="false" 
             />
           </div>
           <div class="input-group">
             <span class="prompt">root@fg-lab:~$</span>
             <span class="cmd-label">密码:</span>
             <input 
-              ref="passwordInput"
-              v-model="loginForm.password" 
+              v-model="registerForm.password" 
               type="password" 
               class="terminal-input"
               spellcheck="false" 
-              @keyup.enter="handleLogin"
+            />
+          </div>
+           <div class="input-group">
+            <span class="prompt">root@fg-lab:~$</span>
+            <span class="cmd-label">确认:</span>
+            <input 
+              v-model="registerForm.confirmPassword" 
+              type="password" 
+              class="terminal-input"
+              spellcheck="false" 
+              @keyup.enter="handleRegister"
             />
           </div>
           
           <div class="terminal-actions">
-            <button class="term-btn" @click="handleLogin">[ 执行 ]</button>
-            <button class="term-btn secondary" @click="toggleMode">[ 申请入部 ]</button>
-            <button class="term-btn warning" @click="$router.push('/')">[ 返回 ]</button>
+            <button class="term-btn" @click="handleRegister">[ 提交申请 ]</button>
+            <button class="term-btn warning" @click="$router.push('/login')">[ 返回登录 ]</button>
           </div>
 
           <div v-if="message" class="system-message">
@@ -72,71 +83,37 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const systemReady = ref(false)
-const bootLines = ref([])
 const message = ref('')
-const passwordInput = ref(null)
 
-const loginForm = reactive({
+const registerForm = reactive({
   username: '',
-  password: ''
+  email: '',
+  password: '',
+  confirmPassword: ''
 })
 
-const fullBootLog = [
-  "BIOS 日期 07/28/10 15:24:12 版本: 08.00.10",
-  "CPU: Amadeus 神经引擎 @ 128THz",
-  "正在检查内存...",
-  "内存测试: 65536K OK",
-  "检测主设备... IBN 5100",
-  "检测副设备... Amadeus 系统",
-  "加载操作系统...",
-  "初始化变动率仪表驱动...",
-  "连接到世界线 1.048596...",
-  "连接已建立。",
-  "系统就绪。"
-]
-
-onMounted(() => {
-  runBootSequence()
-})
-
-const runBootSequence = async () => {
-  for (const line of fullBootLog) {
-    bootLines.value.push(line)
-    await new Promise(r => setTimeout(r, Math.random() * 300 + 50))
-  }
-  setTimeout(() => {
-    systemReady.value = true
-  }, 500)
-}
-
-const focusPassword = () => {
-  passwordInput.value.focus()
-}
-
-const handleLogin = () => {
-  if (!loginForm.username || !loginForm.password) {
-    message.value = "错误: 请输入凭证。"
+const handleRegister = () => {
+  if (!registerForm.username || !registerForm.email || !registerForm.password) {
+    message.value = "错误: 所有字段均为必填项。"
     return
   }
   
-  message.value = "正在验证..."
+  if (registerForm.password !== registerForm.confirmPassword) {
+    message.value = "错误: 密码不匹配。"
+    return
+  }
+  
+  message.value = "正在加密数据并发送至未来..."
   setTimeout(() => {
-    if (loginForm.username === 'Okabe' || true) { // Mock logic
-      message.value = "访问已授权。欢迎, Labmem。"
-      setTimeout(() => {
-        router.push('/')
-      }, 1000)
-    }
-  }, 800)
-}
-
-const toggleMode = () => {
-  router.push('/register')
+    message.value = "注册成功。欢迎加入实验室，Labmem。"
+    setTimeout(() => {
+      router.push('/login')
+    }, 1500)
+  }, 1000)
 }
 </script>
 
@@ -196,16 +173,6 @@ const toggleMode = () => {
   text-shadow: 0 0 5px #33ff00, 0 0 10px #33ff00; /* Glow effect */
 }
 
-/* Boot Sequence */
-.boot-sequence {
-  padding: 2rem;
-}
-
-.boot-line {
-  margin: 0.2rem 0;
-  opacity: 0.8;
-}
-
 /* Login Interface */
 .ascii-logo pre {
   font-family: 'VT323', monospace;
@@ -241,6 +208,7 @@ const toggleMode = () => {
 
 .cmd-label {
   margin-right: 0.5rem;
+  min-width: 60px;
 }
 
 .terminal-input {
@@ -277,18 +245,6 @@ const toggleMode = () => {
   background: #33ff00;
   color: #000;
   box-shadow: 0 0 20px #33ff00;
-}
-
-.term-btn.secondary {
-  border-color: #00ccff;
-  color: #00ccff;
-  text-shadow: 0 0 5px #00ccff;
-}
-
-.term-btn.secondary:hover {
-  background: #00ccff;
-  color: #000;
-  box-shadow: 0 0 20px #00ccff;
 }
 
 .term-btn.warning {
