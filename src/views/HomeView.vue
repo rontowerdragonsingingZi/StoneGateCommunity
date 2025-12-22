@@ -18,7 +18,7 @@
             <span class="digit">9</span>
             <span class="digit">6</span>
           </div>
-          <div class="meter-label">Divergence Meter</div>
+          <div class="meter-label">变动率仪表</div>
         </div>
 
         <div class="hero-text-area">
@@ -27,20 +27,20 @@
             <span class="en">STEINS;GATE COMMUNITY</span>
           </h1>
           <div class="decoration-line"></div>
-          <p class="slogan">There is no end though there is a start in space.</p>
+          <p class="slogan">宇宙虽有起始，却无终结。—— 无限。</p>
         </div>
 
         <div class="action-area">
           <button class="cyber-btn primary" @click="$router.push('/community')">
-            <span class="btn-content">INITIALIZE</span>
+            <span class="btn-content">进入社区</span>
           </button>
           <button class="cyber-btn secondary" @click="scrollToContent">
-            <span class="btn-content">DATA LOG</span>
+            <span class="btn-content">数据日志</span>
           </button>
         </div>
         
         <div class="scroll-indicator">
-          <span>SCROLL DOWN</span>
+          <span>向下滚动</span>
           <div class="scroll-line"></div>
         </div>
       </section>
@@ -49,7 +49,7 @@
       <section class="info-section" id="story">
         <div class="container">
           <div class="section-header">
-            <h2 class="section-title">PROJECT AMADEUS</h2>
+            <h2 class="section-title">阿玛迪斯计划</h2>
             <div class="section-line"></div>
           </div>
           <div class="story-content">
@@ -70,7 +70,7 @@
       <section class="info-section dark-bg">
         <div class="container">
           <div class="section-header">
-            <h2 class="section-title">LABORATORY FEATURES</h2>
+            <h2 class="section-title">实验室功能</h2>
             <div class="section-line"></div>
           </div>
           <div class="feature-grid">
@@ -82,7 +82,7 @@
                   <path d="M2 12h20" stroke-opacity="0.2" stroke-dasharray="2 2"/>
                 </svg>
               </div>
-              <h3>TIMELINE OBSERVATION</h3>
+              <h3>时间线观测</h3>
               <p>实时监控世界线变动率，记录每一次 Butterfly Effect。</p>
               <div class="card-decor"></div>
             </div>
@@ -95,7 +95,7 @@
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
               </div>
-              <h3>FUTURE GADGETS</h3>
+              <h3>未来道具</h3>
               <p>分享你的发明创造，无论是微波炉还是时间跳跃机。</p>
               <div class="card-decor"></div>
             </div>
@@ -109,7 +109,7 @@
                    <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3" />
                 </svg>
               </div>
-              <h3>AMADEUS SYSTEM</h3>
+              <h3>阿玛迪斯系统</h3>
               <p>与 AI 助手进行对话，获取来自未来的建议。</p>
               <div class="card-decor"></div>
             </div>

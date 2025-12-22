@@ -24,7 +24,7 @@
       </router-view>
     </a-layout-content>
     <a-layout-footer class="footer" v-if="!isHome">
-      Stone Gate Community &copy; 2025 Created by Future Gadget Lab
+      石头门社区 &copy; 2025 由未来道具研究所创建
     </a-layout-footer>
   </a-layout>
 </template>

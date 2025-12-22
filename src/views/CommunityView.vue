@@ -13,7 +13,7 @@
           <span class="logo-suffix">/COMMUNITY</span>
         </div>
         
-        <div class="menu-label">/// NAVIGATION</div>
+        <div class="menu-label">/// 导航</div>
         <a-menu 
           :default-selected-keys="['1']" 
           class="terminal-menu"
@@ -21,19 +21,19 @@
         >
           <a-menu-item key="1">
             <template #icon><icon-home /></template>
-            [OBSERVATION_LOG]
+            [观测日志]
           </a-menu-item>
           <a-menu-item key="2">
             <template #icon><icon-code /></template>
-            [FUTURE_GADGETS]
+            [未来道具]
           </a-menu-item>
           <a-menu-item key="3">
             <template #icon><icon-bulb /></template>
-            [WORLD_LINE_DATA]
+            [世界线数据]
           </a-menu-item>
           <a-menu-item key="4">
             <template #icon><icon-message /></template>
-            [ROUND_TABLE]
+            [圆桌会议]
           </a-menu-item>
         </a-menu>
 
@@ -48,7 +48,7 @@
             </a-avatar>
             <div class="user-details">
               <div class="username">Phoenix Kyoma</div>
-              <div class="status">Level 0: Operator</div>
+              <div class="status">Level 0: 操作员</div>
             </div>
           </div>
         </div>
@@ -64,10 +64,10 @@
           <div class="header-actions">
              <div class="search-box">
                <span class="search-icon">></span>
-               <input type="text" placeholder="grep 'keyword'..." />
+               <input type="text" placeholder="搜索关键词..." />
              </div>
              <button class="action-btn new-post">
-              <icon-plus /> NEW_ENTRY
+              <icon-plus /> 新建帖子
              </button>
           </div>
         </a-layout-header>
@@ -80,9 +80,9 @@
               <div v-if="activeKey !== '4'" class="log-feed">
                 <div class="feed-header-bar">
                   <span>ID</span>
-                  <span>SUBJECT</span>
-                  <span>AUTHOR</span>
-                  <span>TIMESTAMP</span>
+                  <span>主题</span>
+                  <span>作者</span>
+                  <span>时间</span>
                 </div>
                 
                 <div v-for="item in mockData" :key="item.id" class="log-entry">
@@ -102,9 +102,9 @@
                   </div>
 
                   <div class="entry-actions">
-                    <button class="text-btn"><icon-heart /> {{ item.likes }} ACKs</button>
-                    <button class="text-btn"><icon-message /> {{ item.comments }} REPLIES</button>
-                    <button class="text-btn"><icon-share-alt /> FORWARD</button>
+                    <button class="text-btn"><icon-heart /> {{ item.likes }} 赞同</button>
+                    <button class="text-btn"><icon-message /> {{ item.comments }} 回复</button>
+                    <button class="text-btn"><icon-share-alt /> 转发</button>
                   </div>
                 </div>
               </div>
@@ -118,7 +118,7 @@
               <!-- 右侧：系统监控风格 -->
               <div class="widget-panel">
                 <div class="widget-header">
-                  <span class="widget-title">TOP_DIVERGENCE</span>
+                  <span class="widget-title">热门变动</span>
                   <div class="widget-decor"></div>
                 </div>
                 <div class="trend-list">
@@ -132,12 +132,12 @@
               
               <div class="widget-panel ad-panel">
                 <div class="widget-header">
-                  <span class="widget-title">RECRUITMENT</span>
+                  <span class="widget-title">招募中</span>
                 </div>
                 <div class="ad-content">
-                  <p>>> SEARCHING FOR LABMEM 009</p>
+                  <p>>> 正在寻找 LABMEM 009</p>
                   <p class="blink">_</p>
-                  <button class="apply-btn">APPLY_NOW()</button>
+                  <button class="apply-btn">立即申请()</button>
                 </div>
               </div>
             </a-col>

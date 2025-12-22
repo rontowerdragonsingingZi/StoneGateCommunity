@@ -20,20 +20,20 @@
   ____) |  | | | |__| | |\  | |____ 
  |_____/   |_|  \____/|_| \_|______|
                                     
-       FUTURE GADGET LABORATORY
+         未来道具研究所
 </pre>
         </div>
 
         <div class="system-status">
-          <p>> SYSTEM: ONLINE</p>
-          <p>> CONNECTION: ENCRYPTED (SG-VPN)</p>
-          <p>> DIVERGENCE: 1.048596%</p>
+          <p>> 系统: 在线</p>
+          <p>> 连接: 加密 (SG-VPN)</p>
+          <p>> 变动率: 1.048596%</p>
         </div>
 
         <div class="auth-form">
           <div class="input-group">
             <span class="prompt">root@fg-lab:~$</span>
-            <span class="cmd-label">codename:</span>
+            <span class="cmd-label">代号:</span>
             <input 
               v-model="loginForm.username" 
               type="text" 
@@ -45,7 +45,7 @@
           </div>
           <div class="input-group">
             <span class="prompt">root@fg-lab:~$</span>
-            <span class="cmd-label">passphrase:</span>
+            <span class="cmd-label">密码:</span>
             <input 
               ref="passwordInput"
               v-model="loginForm.password" 
@@ -57,9 +57,9 @@
           </div>
           
           <div class="terminal-actions">
-            <button class="term-btn" @click="handleLogin">[ EXECUTE ]</button>
-            <button class="term-btn secondary" @click="toggleMode">[ SWITCH_MODE ]</button>
-            <button class="term-btn warning" @click="$router.push('/')">[ ABORT ]</button>
+            <button class="term-btn" @click="handleLogin">[ 执行 ]</button>
+            <button class="term-btn secondary" @click="toggleMode">[ 切换模式 ]</button>
+            <button class="term-btn warning" @click="$router.push('/')">[ 返回 ]</button>
           </div>
 
           <div v-if="message" class="system-message">
@@ -87,17 +87,17 @@ const loginForm = reactive({
 })
 
 const fullBootLog = [
-  "BIOS Date 07/28/10 15:24:12 Ver: 08.00.10",
-  "CPU: Amadeus Neural Engine @ 128THz",
-  "Checking Memory...",
-  "Memory Test: 65536K OK",
-  "Detecting Primary Master... IBN 5100",
-  "Detecting Secondary Master... Amadeus System",
-  "Loading OS...",
-  "Initializing Divergence Meter drivers...",
-  "Connecting to World Line 1.048596...",
-  "Connection Established.",
-  "System Ready."
+  "BIOS 日期 07/28/10 15:24:12 版本: 08.00.10",
+  "CPU: Amadeus 神经引擎 @ 128THz",
+  "正在检查内存...",
+  "内存测试: 65536K OK",
+  "检测主设备... IBN 5100",
+  "检测副设备... Amadeus 系统",
+  "加载操作系统...",
+  "初始化变动率仪表驱动...",
+  "连接到世界线 1.048596...",
+  "连接已建立。",
+  "系统就绪。"
 ]
 
 onMounted(() => {
@@ -120,14 +120,14 @@ const focusPassword = () => {
 
 const handleLogin = () => {
   if (!loginForm.username || !loginForm.password) {
-    message.value = "ERROR: Credentials required."
+    message.value = "错误: 请输入凭证。"
     return
   }
   
-  message.value = "Authenticating..."
+  message.value = "正在验证..."
   setTimeout(() => {
     if (loginForm.username === 'Okabe' || true) { // Mock logic
-      message.value = "Access Granted. Welcome, Labmem."
+      message.value = "访问已授权。欢迎, Labmem。"
       setTimeout(() => {
         router.push('/')
       }, 1000)
@@ -136,7 +136,7 @@ const handleLogin = () => {
 }
 
 const toggleMode = () => {
-  message.value = "COMMAND NOT RECOGNIZED: Registration disabled by Organization."
+  message.value = "命令无法识别: 注册已被组织禁用。"
 }
 </script>
 
