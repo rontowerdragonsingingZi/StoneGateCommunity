@@ -85,6 +85,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { register } from '../api/user'
 
 const router = useRouter()
 const message = ref('')
@@ -96,9 +97,14 @@ const registerForm = reactive({
   confirmPassword: ''
 })
 
-const handleRegister = () => {
-  if (!registerForm.username || !registerForm.email || !registerForm.password) {
-    message.value = "错误: 所有字段均为必填项。"
+const handleRegister = async () => {
+  if (!registerForm.username || !registerForm.password) {
+    message.value = "错误: 代号和密码为必填项。"
+    return
+  }
+  
+  if (registerForm.password.length < 6) {
+    message.value = "错误: D-Mail密钥至少6位。"
     return
   }
   
@@ -108,12 +114,26 @@ const handleRegister = () => {
   }
   
   message.value = "正在加密数据并发送至未来..."
-  setTimeout(() => {
-    message.value = "注册成功。欢迎加入实验室，Labmem。"
-    setTimeout(() => {
-      router.push('/login')
-    }, 1500)
-  }, 1000)
+  
+  try {
+    const res = await register({
+      name: registerForm.username,
+      password: registerForm.password,
+      email: registerForm.email || undefined
+    })
+    
+    if (res.code === 201) {
+      message.value = res.message || "欢迎加入Future Gadget Lab，Labmem注册完成"
+      setTimeout(() => {
+        router.push('/login')
+      }, 1500)
+    } else {
+      message.value = res.message || "注册失败，请重试"
+    }
+  } catch (error) {
+    message.value = "网络错误: 无法连接到服务器"
+    console.error('Register error:', error)
+  }
 }
 </script>
 

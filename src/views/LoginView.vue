@@ -74,6 +74,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { login } from '../api/user'
 
 const router = useRouter()
 const systemReady = ref(false)
@@ -118,21 +119,38 @@ const focusPassword = () => {
   passwordInput.value.focus()
 }
 
-const handleLogin = () => {
+const handleLogin = async () => {
   if (!loginForm.username || !loginForm.password) {
     message.value = "错误: 请输入凭证。"
     return
   }
   
   message.value = "正在验证..."
-  setTimeout(() => {
-    if (loginForm.username === 'Okabe' || true) { // Mock logic
-      message.value = "访问已授权。欢迎, Labmem。"
+  
+  try {
+    const res = await login({
+      name: loginForm.username,
+      password: loginForm.password
+    })
+    
+    if (res.code === 200) {
+      message.value = res.message || "访问已授权。欢迎, Labmem。"
+      // 存储用户信息到 localStorage
+      localStorage.setItem('user', JSON.stringify(res.data))
       setTimeout(() => {
         router.push('/')
       }, 1000)
+    } else if (res.code === 404) {
+      message.value = res.message || "该Labmem不存在于此世界线"
+    } else if (res.code === 401) {
+      message.value = res.message || "认证失败，D-Mail密钥不匹配"
+    } else {
+      message.value = res.message || "未知错误，请重试"
     }
-  }, 800)
+  } catch (error) {
+    message.value = "网络错误: 无法连接到服务器"
+    console.error('Login error:', error)
+  }
 }
 
 const toggleMode = () => {
