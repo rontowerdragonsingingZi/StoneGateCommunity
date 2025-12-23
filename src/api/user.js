@@ -37,3 +37,30 @@ export async function login(data) {
   })
   return response.json()
 }
+
+/**
+ * 更新用户信息
+ * @param {number} id - 用户ID
+ * @param {Object} data - 更新信息（所有字段可选）
+ */
+export async function updateUser(id, data) {
+  const response = await fetch(`${BASE_URL}/users/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  return response.json()
+}
+
+/**
+ * 删除用户（注销）
+ * @param {number} id - 用户ID
+ */
+export async function deleteUser(id) {
+  const response = await fetch(`${BASE_URL}/users/${id}`, {
+    method: 'DELETE'
+  })
+  return response.json()
+}

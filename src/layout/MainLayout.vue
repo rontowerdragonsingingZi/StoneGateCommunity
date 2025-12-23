@@ -21,7 +21,7 @@
                  <span class="user-name">{{ userStore.user.name }}</span>
                </div>
                <template #content>
-                 <a-doption class="sg-doption">
+                 <a-doption class="sg-doption" @click="$router.push('/profile')">
                    <template #icon><icon-user /></template>
                    Labmem 档案
                  </a-doption>
