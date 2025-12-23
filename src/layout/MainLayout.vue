@@ -12,7 +12,28 @@
           <a-menu-item key="About">关于</a-menu-item>
         </a-menu>
         <div class="actions">
-           <a-button class="login-btn" type="text" @click="$router.push('/login')">登录 / 注册</a-button>
+           <div v-if="userStore.user" class="user-profile">
+             <a-dropdown trigger="hover">
+               <div class="user-info">
+                 <a-avatar :size="32" :image-url="userStore.user.avatar" class="user-avatar">
+                   {{ userStore.user.name ? userStore.user.name.charAt(0).toUpperCase() : 'U' }}
+                 </a-avatar>
+                 <span class="user-name">{{ userStore.user.name }}</span>
+               </div>
+               <template #content>
+                 <a-doption class="sg-doption">
+                   <template #icon><icon-user /></template>
+                   Labmem 档案
+                 </a-doption>
+                 <a-doption class="sg-doption" @click="handleLogout">
+                   <template #icon><icon-poweroff /></template>
+                   解除连接
+                   <span class="sub-text">El Psy Kongroo</span>
+                 </a-doption>
+               </template>
+             </a-dropdown>
+           </div>
+           <a-button v-else class="login-btn" type="text" @click="$router.push('/login')">登录 / 注册</a-button>
         </div>
       </div>
     </a-layout-header>
@@ -32,9 +53,17 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useUserStore } from '../stores/user'
+import { IconPoweroff, IconUser } from '@arco-design/web-vue/es/icon'
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
+
+const handleLogout = () => {
+  userStore.logout()
+  router.push('/login')
+}
 
 const selectedKeys = computed(() => [route.name])
 const isHome = computed(() => route.name === 'Home')
@@ -144,6 +173,94 @@ const handleMenuClick = (key) => {
 .login-btn:hover {
   color: #00aaff !important;
   background: rgba(0, 170, 255, 0.1) !important;
+}
+
+.user-profile {
+  cursor: pointer;
+  color: #fff;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.user-info:hover {
+  background-color: rgba(51, 255, 0, 0.05);
+  box-shadow: 0 0 15px rgba(51, 255, 0, 0.1);
+  border: 1px solid rgba(51, 255, 0, 0.2);
+}
+
+.user-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1rem;
+  color: #aaddaa;
+  text-shadow: 0 0 2px rgba(51, 255, 0, 0.3);
+  transition: color 0.3s ease;
+}
+
+.user-info:hover .user-name {
+  color: #33ff00;
+  text-shadow: 0 0 8px rgba(51, 255, 0, 0.8);
+}
+
+.user-avatar {
+  background-color: #000;
+  border: 1px solid #004400;
+  color: #008800;
+  box-shadow: 0 0 5px rgba(0, 50, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.user-info:hover .user-avatar {
+  border-color: #33ff00;
+  color: #33ff00;
+  box-shadow: 0 0 10px rgba(51, 255, 0, 0.5);
+}
+
+/* 覆盖 Arco Dropdown 样式以符合主题 */
+:deep(.arco-dropdown) {
+  background-color: rgba(10, 15, 10, 0.95) !important;
+  border: 1px solid #1a331a;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(51, 255, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 0;
+}
+
+:deep(.arco-dropdown-list) {
+  padding: 0;
+}
+
+:deep(.arco-dropdown-option) {
+  color: #88aa88 !important;
+  font-family: 'Share Tech Mono', monospace;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+  padding: 10px 16px;
+}
+
+:deep(.arco-dropdown-option:hover) {
+  background: linear-gradient(90deg, rgba(51, 255, 0, 0.1) 0%, rgba(0,0,0,0) 100%) !important;
+  color: #33ff00 !important;
+  text-shadow: 0 0 8px rgba(51, 255, 0, 0.6);
+  border-left: 2px solid #33ff00;
+}
+
+:deep(.arco-icon) {
+  color: inherit;
+  margin-right: 8px;
+}
+
+.sub-text {
+  font-size: 0.7em;
+  margin-left: 8px;
+  opacity: 0.7;
+  font-style: italic;
+  font-family: 'Cinzel', serif;
 }
 
 .main-content {

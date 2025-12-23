@@ -75,8 +75,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '../api/user'
+import { useUserStore } from '../stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 const systemReady = ref(false)
 const bootLines = ref([])
 const message = ref('')
@@ -135,8 +137,8 @@ const handleLogin = async () => {
     
     if (res.code === 200) {
       message.value = res.message || "访问已授权。欢迎, Labmem。"
-      // 存储用户信息到 localStorage
-      localStorage.setItem('user', JSON.stringify(res.data))
+      // 使用 store 存储用户信息
+      userStore.login(res.data)
       setTimeout(() => {
         router.push('/')
       }, 1000)
