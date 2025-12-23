@@ -119,7 +119,8 @@ const handleRegister = async () => {
     const res = await register({
       name: registerForm.username,
       password: registerForm.password,
-      email: registerForm.email || undefined
+      email: registerForm.email || undefined,
+      avatar: '/default.png'
     })
     
     if (res.code === 201) {
