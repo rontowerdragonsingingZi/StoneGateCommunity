@@ -1,4 +1,4 @@
-const BASE_URL = 'http://45.145.229.113:8012/api'
+const BASE_URL = 'https://api.mahoer.space/api'
 
 /**
  * 用户注册
