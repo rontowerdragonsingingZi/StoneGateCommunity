@@ -35,6 +35,10 @@
             <template #icon><icon-message /></template>
             [圆桌会议]
           </a-menu-item>
+          <a-menu-item key="5">
+            <template #icon><icon-image /></template>
+            [图床服务]
+          </a-menu-item>
         </a-menu>
 
         <div class="user-panel">
@@ -77,7 +81,7 @@
             <a-col :span="17">
               
               <!-- 帖子列表：日志流风格 -->
-              <div v-if="activeKey !== '4'" class="log-feed">
+              <div v-if="activeKey !== '4' && activeKey !== '5'" class="log-feed">
                 <div class="feed-header-bar">
                   <span>ID</span>
                   <span>主题</span>
@@ -110,7 +114,10 @@
               </div>
 
               <!-- 聊天室组件 -->
-              <ChatRoom v-else />
+              <ChatRoom v-else-if="activeKey === '4'" />
+
+              <!-- 图床服务 -->
+              <ImageHosting v-else-if="activeKey === '5'" />
 
             </a-col>
             
@@ -152,9 +159,10 @@
 import { ref, computed } from 'vue'
 import { 
   IconHome, IconCode, IconBulb, IconMessage, 
-  IconPlus, IconHeart, IconShareAlt
+  IconPlus, IconHeart, IconShareAlt, IconImage
 } from '@arco-design/web-vue/es/icon'
 import ChatRoom from '../components/ChatRoom.vue'
+import ImageHosting from '../components/ImageHosting.vue'
 
 const activeKey = ref('1')
 
