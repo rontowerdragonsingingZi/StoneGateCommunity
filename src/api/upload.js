@@ -2,32 +2,25 @@ import { post, get } from './request'
 
 /**
  * 上传图片到图床 (Cloudflare R2)
- * @param {File} file - 图片文件 (jpg/jpeg/png/gif/webp/avif, ≤10MB)
- * @param {string} [folder] - 目标目录，默认 uploads/images
+ * 路径由后端自动生成：users/{user_id}/{uuid}.{ext}
+ * @param {File} file - 图片文件 (jpg/jpeg/png/gif/webp/avif, ≤50MB)
  * @returns {Promise<{code: number, message: string, data: {key: string, mime: string, size: number, url: string}}>}
  */
-export function uploadImage(file, folder = 'uploads/images') {
+export function uploadImage(file) {
   const formData = new FormData()
   formData.append('file', file)
-  if (folder) {
-    formData.append('folder', folder)
-  }
   return post('/upload-image', formData)
 }
 
 /**
- * 获取图片列表
+ * 获取当前用户的图片列表
  * @param {Object} params - 查询参数
- * @param {string} [params.folder] - 目录
  * @param {number} [params.per_page=50] - 每页数量
  * @param {number} [params.page=1] - 页码
- * @param {number} [params.deep=1] - 是否递归查询子目录
  */
-export function getImages({ folder = '', per_page = 50, page = 1, deep = 1 } = {}) {
+export function getImages({ per_page = 50, page = 1 } = {}) {
   const params = new URLSearchParams()
-  if (folder) params.append('folder', folder)
   params.append('per_page', per_page)
   params.append('page', page)
-  params.append('deep', deep)
   return get(`/images?${params.toString()}`)
 }

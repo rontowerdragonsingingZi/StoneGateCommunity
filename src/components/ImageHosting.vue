@@ -59,7 +59,7 @@
             <span class="file-size">{{ formatFileSize(file.size) }}</span>
           </li>
         </ul>
-        <p class="upload-hint">支持格式: JPG, PNG, GIF, WebP, AVIF (最大 10MB)</p>
+        <p class="upload-hint">支持格式: JPG, PNG, GIF, WebP, AVIF (最大 50MB)</p>
       </div>
     </TerminalConfirm>
 
@@ -140,7 +140,7 @@ const perPage = 50
 const loadImages = async (page = 1) => {
   isLoading.value = true
   try {
-    const res = await getImages({ folder: 'community', per_page: perPage, page, deep: 1 })
+    const res = await getImages({ per_page: perPage, page })
     
     if (res.code === 200 && res.data) {
       totalImages.value = res.data.total || 0
@@ -150,9 +150,9 @@ const loadImages = async (page = 1) => {
       imageList.value = (res.data.items || []).map((item, idx) => ({
         id: item.key || idx,
         url: item.url || '',
-        name: item.key ? item.key.split('/').pop() : 'unknown',
+        name: extractFilename(item.key),
         size: '',
-        date: extractDateFromKey(item.key)
+        date: '' // 新格式不再包含日期路径
       })).filter(img => img.url) // 过滤掉没有URL的
     }
   } catch (error) {
@@ -163,15 +163,10 @@ const loadImages = async (page = 1) => {
   }
 }
 
-// 从 key 中提取日期
-const extractDateFromKey = (key) => {
-  if (!key) return ''
-  // key 格式: folder/2025/12/23/xxx.jpg
-  const match = key.match(/(\d{4})\/(\d{2})\/(\d{2})/)
-  if (match) {
-    return `${match[1]}-${match[2]}-${match[3]}`
-  }
-  return ''
+// 从 key 中提取文件名（新格式: users/{user_id}/{uuid}.{ext}）
+const extractFilename = (key) => {
+  if (!key) return 'unknown'
+  return key.split('/').pop() || 'unknown'
 }
 
 onMounted(() => {
@@ -208,8 +203,8 @@ const prepareUpload = (files) => {
       Message.error(`不支持的文件类型: ${file.name}`)
       continue
     }
-    if (file.size > 10 * 1024 * 1024) {
-      Message.error(`文件过大: ${file.name} (最大10MB)`)
+    if (file.size > 50 * 1024 * 1024) {
+      Message.error(`文件过大: ${file.name} (最备50MB)`)
       continue
     }
     validFiles.push(file)
@@ -236,7 +231,7 @@ const confirmUpload = async () => {
   
   for (const file of pendingFiles.value) {
     try {
-      const res = await uploadImage(file, 'community')
+      const res = await uploadImage(file)
       
       if (res.code === 201) {
         hasSuccess = true
