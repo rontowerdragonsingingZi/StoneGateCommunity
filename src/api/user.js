@@ -1,7 +1,7 @@
-const BASE_URL = 'https://api.mahoer.space/api'
+import { post, put, del } from './request'
 
 /**
- * 用户注册
+ * 用户注册（不需要JWT）
  * @param {Object} data - 注册信息
  * @param {string} data.name - Labmem代号 (必填)
  * @param {string} data.password - D-Mail密钥，最少6位 (必填)
@@ -10,57 +10,33 @@ const BASE_URL = 'https://api.mahoer.space/api'
  * @param {string} [data.avatar] - 头像路径
  * @param {string} [data.contact] - 联系方式
  */
-export async function register(data) {
-  const response = await fetch(`${BASE_URL}/users`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  })
-  return response.json()
+export function register(data) {
+  return post('/users', data, false)
 }
 
 /**
- * 用户登录
+ * 用户登录（不需要JWT）
  * @param {Object} data - 登录信息
  * @param {string} data.name - Labmem代号 (必填)
  * @param {string} data.password - D-Mail密钥 (必填)
  */
-export async function login(data) {
-  const response = await fetch(`${BASE_URL}/users/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  })
-  return response.json()
+export function login(data) {
+  return post('/users/login', data, false)
 }
 
 /**
- * 更新用户信息
+ * 更新用户信息（需要JWT）
  * @param {number} id - 用户ID
  * @param {Object} data - 更新信息（所有字段可选）
  */
-export async function updateUser(id, data) {
-  const response = await fetch(`${BASE_URL}/users/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  })
-  return response.json()
+export function updateUser(id, data) {
+  return put(`/users/${id}`, data)
 }
 
 /**
- * 删除用户（注销）
+ * 删除用户（注销，需要JWT）
  * @param {number} id - 用户ID
  */
-export async function deleteUser(id) {
-  const response = await fetch(`${BASE_URL}/users/${id}`, {
-    method: 'DELETE'
-  })
-  return response.json()
+export function deleteUser(id) {
+  return del(`/users/${id}`)
 }

@@ -137,8 +137,8 @@ const handleLogin = async () => {
     
     if (res.code === 200) {
       message.value = res.message || "访问已授权。欢迎, Labmem。"
-      // 使用 store 存储用户信息
-      userStore.login(res.data)
+      // 使用 store 存储用户信息和token
+      userStore.login(res.data.user || res.data, res.data.token)
       setTimeout(() => {
         router.push('/')
       }, 1000)
