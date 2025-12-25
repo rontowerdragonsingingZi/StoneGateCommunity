@@ -3,9 +3,11 @@
     <!-- 聊天头部 -->
     <div class="chat-header">
       <div class="header-info">
-        <span class="channel-status">[ENCRYPTED]</span>
+        <span class="channel-status" :class="{ connected: isConnected }">
+          {{ isConnected ? '[CONNECTED]' : '[CONNECTING...]' }}
+        </span>
         <h2 class="channel-name"># ROUND_TABLE_CONFERENCE</h2>
-        <span class="online-count">ONLINE: 4</span>
+        <span class="online-count">ONLINE: {{ onlineUsers.length }}</span>
       </div>
       <div class="header-decor">
         <div class="signal-bars">
@@ -59,50 +61,53 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import { Message } from '@arco-design/web-vue'
+import { getEcho, disconnectEcho } from '../echo'
+import { sendMessage as apiSendMessage, getChatHistory } from '../api/chat'
+import { getToken } from '../api/request'
+
+// 从 localStorage 获取当前用户信息
+const getCurrentUser = () => {
+  try {
+    const userStr = localStorage.getItem('user')
+    return userStr ? JSON.parse(userStr) : null
+  } catch {
+    return null
+  }
+}
 
 const messageContainer = ref(null)
 const inputText = ref('')
+const messages = ref([])
+const onlineUsers = ref([])
+const isConnected = ref(false)
+const isLoading = ref(false)
+const currentUser = ref(getCurrentUser())
 
-const messages = ref([
-  {
-    id: '0x1A4',
-    author: 'Daru',
-    avatarChar: 'Da',
-    color: '#e67e22',
-    time: '14:02:33',
-    text: '今天的服务器状态看起来很稳定，IBN 5100 的解码进度已经到 48% 了。',
-    isSelf: false
-  },
-  {
-    id: '0x1A5',
-    author: 'Kurisu',
-    avatarChar: 'Ku',
-    color: '#9b59b6',
-    time: '14:03:12',
-    text: '冈部，你上次提到的那个理论漏洞，我重新推导了一遍，确实存在因果倒置的可能性。',
-    isSelf: false
-  },
-  {
-    id: '0x1A6',
-    author: 'Mayuri',
-    avatarChar: 'Ma',
-    color: '#2ecc71',
-    time: '14:04:00',
-    text: '嘟嘟噜~ 大家的炸鸡块已经买回来了哦！',
-    isSelf: false
-  },
-  {
-    id: '0x1A7',
-    author: 'Phoenix',
-    avatarChar: 'Ph',
-    color: '#3498db',
-    time: '14:04:45',
-    text: '干得好，真由理！这就是命运石之门的选择！',
-    isSelf: true
-  }
-])
+// 用户颜色映射（根据 ID 生成稳定颜色）
+const userColors = [
+  '#e67e22', '#9b59b6', '#2ecc71', '#3498db', 
+  '#e74c3c', '#1abc9c', '#f39c12', '#8e44ad'
+]
+const getUserColor = (userId) => userColors[userId % userColors.length]
 
+// 获取头像字符
+const getAvatarChar = (name) => {
+  if (!name) return '??'
+  return name.substring(0, 2)
+}
+
+// 格式化时间
+const formatTime = (isoString) => {
+  const date = new Date(isoString)
+  return date.toLocaleTimeString('en-GB', { hour12: false })
+}
+
+// 格式化消息ID
+const formatId = (id) => `0x${id.toString(16).toUpperCase()}`
+
+// 滚动到底部
 const scrollToBottom = () => {
   nextTick(() => {
     if (messageContainer.value) {
@@ -111,42 +116,135 @@ const scrollToBottom = () => {
   })
 }
 
-const sendMessage = () => {
+// 加载历史消息
+const loadHistory = async () => {
+  if (!getToken()) return
+  
+  isLoading.value = true
+  try {
+    const res = await getChatHistory({ limit: 50 })
+    if (res.code === 200 && res.data?.items) {
+      messages.value = res.data.items.map(msg => ({
+        id: formatId(msg.id),
+        visid: msg.id,
+        author: msg.user?.name || 'Unknown',
+        avatarChar: getAvatarChar(msg.user?.name),
+        color: getUserColor(msg.user?.id || 0),
+        time: formatTime(msg.created_at),
+        text: msg.content,
+        isSelf: msg.user?.id === currentUser.value?.id
+      }))
+      scrollToBottom()
+    }
+  } catch (err) {
+    console.error('Failed to load chat history:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 发送消息
+const sendMessage = async () => {
   if (!inputText.value.trim()) return
+  if (!getToken()) {
+    Message.warning('请先登录后再发送消息')
+    return
+  }
 
-  const now = new Date()
-  const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
-
-  messages.value.push({
-    id: `0x${Math.floor(Math.random()*1000).toString(16).toUpperCase()}`,
-    author: 'Phoenix',
-    avatarChar: 'Ph',
-    color: '#3498db',
-    time: timeString,
-    text: inputText.value,
-    isSelf: true
-  })
-
+  const content = inputText.value.trim()
   inputText.value = ''
-  scrollToBottom()
 
-  // 模拟 Amadeus 自动回复
-  setTimeout(() => {
-    messages.value.push({
-      id: `0x${Math.floor(Math.random()*1000).toString(16).toUpperCase()}`,
-      author: 'Amadeus',
-      avatarChar: 'AI',
-      color: '#e74c3c',
-      time: new Date().toLocaleTimeString('en-GB', { hour12: false }),
-      text: '已接收到数据。正在根据当前世界线变动率进行分析...',
-      isSelf: false
-    })
-    scrollToBottom()
-  }, 1500)
+  try {
+    const res = await apiSendMessage(content)
+    if (res.code === 201 && res.data) {
+      // 添加自己发送的消息
+      messages.value.push({
+        id: formatId(res.data.id),
+        rawId: res.data.id,
+        author: res.data.user?.name || currentUser.value?.name || 'Me',
+        avatarChar: getAvatarChar(res.data.user?.name || currentUser.value?.name),
+        color: getUserColor(res.data.user?.id || currentUser.value?.id || 0),
+        time: formatTime(res.data.created_at),
+        text: res.data.content,
+        isSelf: true
+      })
+      scrollToBottom()
+    } else {
+      Message.error(res.message || '发送失败')
+    }
+  } catch (err) {
+    Message.error('网络错误，发送失败')
+    console.error('Send message error:', err)
+  }
+}
+
+// 连接 WebSocket
+let echoChannel = null
+
+const connectWebSocket = () => {
+  if (!getToken()) {
+    console.log('No token, skip WebSocket connection')
+    return
+  }
+
+  try {
+    const echo = getEcho()
+    
+    echoChannel = echo.join('lobby')
+      .here((users) => {
+        // 当前在线用户列表
+        onlineUsers.value = users
+        isConnected.value = true
+        console.log('Connected to lobby, online users:', users)
+      })
+      .joining((user) => {
+        // 有用户加入
+        onlineUsers.value.push(user)
+        console.log('User joined:', user)
+      })
+      .leaving((user) => {
+        // 有用户离开
+        onlineUsers.value = onlineUsers.value.filter(u => u.id !== user.id)
+        console.log('User left:', user)
+      })
+      .listen('.message.sent', (e) => {
+        // 收到新消息（来自其他用户）
+        console.log('Message received:', e)
+        
+        // 避免重复添加自己的消息
+        if (e.user?.id === currentUser.value?.id) return
+        
+        messages.value.push({
+          id: formatId(e.id),
+          rawId: e.id,
+          author: e.user?.name || 'Unknown',
+          avatarChar: getAvatarChar(e.user?.name),
+          color: getUserColor(e.user?.id || 0),
+          time: formatTime(e.created_at),
+          text: e.content,
+          isSelf: false
+        })
+        scrollToBottom()
+      })
+      .error((error) => {
+        console.error('WebSocket error:', error)
+        isConnected.value = false
+      })
+  } catch (err) {
+    console.error('Failed to connect WebSocket:', err)
+    isConnected.value = false
+  }
 }
 
 onMounted(() => {
-  scrollToBottom()
+  loadHistory()
+  connectWebSocket()
+})
+
+onUnmounted(() => {
+  if (echoChannel) {
+    echoChannel.leave()
+  }
 })
 </script>
 
@@ -181,8 +279,12 @@ onMounted(() => {
 
 .channel-status {
   font-size: 12px;
-  color: #238636;
+  color: #f0883e;
   font-weight: bold;
+}
+
+.channel-status.connected {
+  color: #238636;
 }
 
 .channel-name {
