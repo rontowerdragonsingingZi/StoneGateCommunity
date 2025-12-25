@@ -175,6 +175,7 @@ import { useUserStore } from '../stores/user'
 import { useRouter } from 'vue-router'
 import { ref, reactive, onMounted } from 'vue'
 import { updateUser, deleteUser } from '../api/user'
+import { uploadImage } from '../api/upload'
 import TerminalConfirm from '../components/TerminalConfirm.vue'
 
 const userStore = useUserStore()
@@ -306,13 +307,26 @@ const saveChanges = async () => {
 
     // 检查是否有头像更新
     if (avatarFile.value) {
-      // TODO: 如果后端支持文件上传，这里需要先上传图片获取URL
-      // 目前假设后端接受 base64 或图片路径
-      message.value = '头像上传功能待对接后端API'
-      // data.avatar = uploadedUrl
+      try {
+        const uploadRes = await uploadImage(avatarFile.value)
+        if (uploadRes.code === 201 && uploadRes.data?.url) {
+          data.avatar = uploadRes.data.url
+        } else {
+          message.value = uploadRes.message || '头像上传失败'
+          isError.value = true
+          isSaving.value = false
+          return
+        }
+      } catch (err) {
+        console.error('Avatar upload error:', err)
+        message.value = '头像上传失败，请重试'
+        isError.value = true
+        isSaving.value = false
+        return
+      }
     }
 
-    if (Object.keys(data).length === 0 && !avatarFile.value) {
+    if (Object.keys(data).length === 0) {
       message.value = '未检测到数据变动'
       isSaving.value = false
       return

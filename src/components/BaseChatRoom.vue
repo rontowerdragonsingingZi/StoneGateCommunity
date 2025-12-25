@@ -38,10 +38,30 @@
             <span class="msg-id">ID:{{ msg.id }}</span>
           </div>
           <div class="msg-bubble" :style="{ borderColor: msg.color }">
-            <p>{{ msg.text }}</p>
+            <!-- 文本消息 -->
+            <p v-if="msg.type === 'text' || !msg.type">{{ msg.text }}</p>
+            <!-- 图片消息 -->
+            <div v-else-if="msg.type === 'image'" class="msg-image">
+              <img :src="msg.text" alt="image" @click="previewImage(msg.text)" />
+            </div>
+            <!-- 文件消息 -->
+            <div v-else-if="msg.type === 'file'" class="msg-file">
+              <a :href="msg.text" target="_blank" class="file-link">
+                <span class="file-icon">📄</span>
+                <span class="file-name">{{ getFileName(msg.text) }}</span>
+                <span class="file-action">[下载]</span>
+              </a>
+            </div>
+            <!-- 系统消息 -->
+            <p v-else-if="msg.type === 'system'" class="system-msg">{{ msg.text }}</p>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- 图片预览弹窗 -->
+    <div v-if="previewImageUrl" class="image-preview-overlay" @click="previewImageUrl = null">
+      <img :src="previewImageUrl" alt="preview" />
     </div>
 
     <!-- 输入区域 -->
@@ -55,6 +75,15 @@
           @keyup.enter="handleSend"
           spellcheck="false"
         />
+        <input 
+          ref="fileInput"
+          type="file" 
+          style="display: none"
+          @change="handleFileSelect"
+        />
+        <button class="file-btn" @click="triggerFileSelect" :disabled="isUploading">
+          {{ isUploading ? 'UPLOADING...' : '📎 FILE' }}
+        </button>
         <button class="send-btn" @click="handleSend">SEND_DATA</button>
       </div>
     </div>
@@ -63,6 +92,7 @@
 
 <script setup>
 import { ref, nextTick, watch } from 'vue'
+import { uploadFile } from '../api/upload'
 
 const props = defineProps({
   title: {
@@ -95,10 +125,13 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['back', 'send'])
+const emit = defineEmits(['back', 'send', 'sendFile'])
 
 const messageContainer = ref(null)
 const inputText = ref('')
+const fileInput = ref(null)
+const isUploading = ref(false)
+const previewImageUrl = ref(null)
 
 // 滚动到底部
 const scrollToBottom = () => {
@@ -114,6 +147,60 @@ const handleSend = () => {
   if (!inputText.value.trim()) return
   emit('send', inputText.value.trim())
   inputText.value = ''
+}
+
+// 触发文件选择
+const triggerFileSelect = () => {
+  fileInput.value?.click()
+}
+
+// 文件选择处理
+const handleFileSelect = async (e) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+  
+  // 限制文件大小 100MB
+  if (file.size > 100 * 1024 * 1024) {
+    alert('文件大小不能超过 100MB')
+    e.target.value = ''
+    return
+  }
+  
+  isUploading.value = true
+  try {
+    const res = await uploadFile(file)
+    if (res.code === 201 && res.data?.url) {
+      // 判断是图片还是普通文件
+      const isImage = file.type.startsWith('image/')
+      emit('sendFile', {
+        url: res.data.url,
+        type: isImage ? 'image' : 'file',
+        name: res.data.name,
+        mime: res.data.mime,
+        size: res.data.size
+      })
+    } else {
+      alert(res.message || '上传失败')
+    }
+  } catch (err) {
+    console.error('Upload error:', err)
+    alert('上传失败，请重试')
+  } finally {
+    isUploading.value = false
+    e.target.value = ''
+  }
+}
+
+// 从 URL 获取文件名
+const getFileName = (url) => {
+  if (!url) return 'unknown'
+  const parts = url.split('/')
+  return parts[parts.length - 1] || 'file'
+}
+
+// 预览图片
+const previewImage = (url) => {
+  previewImageUrl.value = url
 }
 
 // 监听消息变化，自动滚动
@@ -348,6 +435,105 @@ defineExpose({
 .send-btn:hover {
   background: #58a6ff;
   color: #0d1117;
+}
+
+.file-btn {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #f0883e;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.file-btn:hover {
+  background: #f0883e;
+  color: #0d1117;
+}
+
+.file-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 图片消息 */
+.msg-image img {
+  max-width: 300px;
+  max-height: 200px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.msg-image img:hover {
+  transform: scale(1.02);
+}
+
+/* 文件消息 */
+.msg-file {
+  display: flex;
+  align-items: center;
+}
+
+.file-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #58a6ff;
+  text-decoration: none;
+  padding: 8px 12px;
+  background: rgba(88, 166, 255, 0.1);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.file-link:hover {
+  background: rgba(88, 166, 255, 0.2);
+}
+
+.file-icon {
+  font-size: 20px;
+}
+
+.file-name {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-action {
+  color: #8b949e;
+  font-size: 12px;
+}
+
+/* 系统消息 */
+.system-msg {
+  color: #8b949e;
+  font-style: italic;
+}
+
+/* 图片预览 */
+.image-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.image-preview-overlay img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
 }
 
 @keyframes fadeIn {

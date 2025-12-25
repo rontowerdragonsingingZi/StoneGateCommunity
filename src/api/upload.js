@@ -13,6 +13,18 @@ export function uploadImage(file) {
 }
 
 /**
+ * 上传通用文件到 R2（支持所有文件类型）
+ * 路径由后端自动生成：users/{user_id}/files/{uuid}.{ext}
+ * @param {File} file - 文件 (≪100MB)
+ * @returns {Promise<{code: number, message: string, data: {key: string, name: string, mime: string, size: number, url: string}}>}
+ */
+export function uploadFile(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return post('/upload-file', formData)
+}
+
+/**
  * 获取当前用户的图片列表
  * @param {Object} params - 查询参数
  * @param {number} [params.per_page=50] - 每页数量

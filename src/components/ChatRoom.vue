@@ -9,6 +9,7 @@
     :show-online-count="true"
     @back="$emit('back')"
     @send="sendMessage"
+    @send-file="sendFileMessage"
   />
 </template>
 
@@ -85,6 +86,7 @@ const loadHistory = async () => {
         color: getUserColor(msg.user?.id || 0),
         time: formatTime(msg.created_at),
         text: msg.content,
+        type: msg.type || 'text',
         isSelf: msg.user?.id === currentUser.value?.id
       }))
     }
@@ -96,7 +98,7 @@ const loadHistory = async () => {
 }
 
 // 发送消息
-const sendMessage = async (content) => {
+const sendMessage = async (content, type = 'text') => {
   if (!content) return
   if (!getToken()) {
     Message.warning('请先登录后再发送消息')
@@ -108,7 +110,7 @@ const sendMessage = async (content) => {
   }
 
   try {
-    const res = await apiSendMessage(props.channel.name, content)
+    const res = await apiSendMessage(props.channel.name, content, type)
     if (res.code === 201 && res.data) {
       // 添加自己发送的消息
       messages.value.push({
@@ -119,6 +121,7 @@ const sendMessage = async (content) => {
         color: getUserColor(res.data.user?.id || currentUser.value?.id || 0),
         time: formatTime(res.data.created_at),
         text: res.data.content,
+        type: res.data.type || 'text',
         isSelf: true
       })
     } else {
@@ -128,6 +131,12 @@ const sendMessage = async (content) => {
     Message.error('网络错误，发送失败')
     console.error('Send message error:', err)
   }
+}
+
+// 发送文件消息
+const sendFileMessage = async (fileInfo) => {
+  // fileInfo: { url, type, name, mime, size }
+  await sendMessage(fileInfo.url, fileInfo.type)
 }
 
 // 连接 WebSocket
@@ -180,7 +189,8 @@ const connectWebSocket = () => {
           color: getUserColor(e.user?.id || 0),
           time: formatTime(e.created_at),
           text: e.content,
-        isSelf: false
+          type: e.type || 'text',
+          isSelf: false
         })
       })
       .error((error) => {
