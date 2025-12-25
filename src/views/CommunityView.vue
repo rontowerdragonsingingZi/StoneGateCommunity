@@ -113,8 +113,18 @@
                 </div>
               </div>
 
-              <!-- 聊天室组件 -->
-              <ChatRoom v-else-if="activeKey === '4'" />
+              <!-- 圆桌会议：频道列表 / 聊天室 -->
+              <template v-else-if="activeKey === '4'">
+                <ChannelList 
+                  v-if="!selectedChannel" 
+                  @enter-channel="handleEnterChannel" 
+                />
+                <ChatRoom 
+                  v-else 
+                  :channel="selectedChannel" 
+                  @back="handleBackToChannels" 
+                />
+              </template>
 
               <!-- 图床服务 -->
               <ImageHosting v-else-if="activeKey === '5'" />
@@ -162,9 +172,21 @@ import {
   IconPlus, IconHeart, IconShareAlt, IconImage
 } from '@arco-design/web-vue/es/icon'
 import ChatRoom from '../components/ChatRoom.vue'
+import ChannelList from '../components/ChannelList.vue'
 import ImageHosting from '../components/ImageHosting.vue'
 
 const activeKey = ref('1')
+const selectedChannel = ref(null)
+
+// 进入频道
+const handleEnterChannel = (channel) => {
+  selectedChannel.value = channel
+}
+
+// 返回频道列表
+const handleBackToChannels = () => {
+  selectedChannel.value = null
+}
 
 const mockData = ref([
 // ... (保留原有 mockData 不变)

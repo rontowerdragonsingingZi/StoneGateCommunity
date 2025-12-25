@@ -3,10 +3,11 @@
     <!-- 聊天头部 -->
     <div class="chat-header">
       <div class="header-info">
+        <button class="back-btn" @click="$emit('back')">← BACK</button>
         <span class="channel-status" :class="{ connected: isConnected }">
           {{ isConnected ? '[CONNECTED]' : '[CONNECTING...]' }}
         </span>
-        <h2 class="channel-name"># ROUND_TABLE_CONFERENCE</h2>
+        <h2 class="channel-name"># {{ channel?.display_name || 'UNKNOWN' }}</h2>
         <span class="online-count">ONLINE: {{ onlineUsers.length }}</span>
       </div>
       <div class="header-decor">
@@ -61,11 +62,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch, computed } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { getEcho, disconnectEcho } from '../echo'
 import { sendMessage as apiSendMessage, getChatHistory } from '../api/chat'
 import { getToken } from '../api/request'
+
+// Props
+const props = defineProps({
+  channel: {
+    type: Object,
+    required: true
+  }
+})
+
+// Emits
+const emit = defineEmits(['back'])
 
 // 从 localStorage 获取当前用户信息
 const getCurrentUser = () => {
@@ -118,11 +130,11 @@ const scrollToBottom = () => {
 
 // 加载历史消息
 const loadHistory = async () => {
-  if (!getToken()) return
+  if (!getToken() || !props.channel?.name) return
   
   isLoading.value = true
   try {
-    const res = await getChatHistory({ limit: 50 })
+    const res = await getChatHistory({ channel: props.channel.name, limit: 50 })
     if (res.code === 200 && res.data?.items) {
       messages.value = res.data.items.map(msg => ({
         id: formatId(msg.id),
@@ -150,12 +162,16 @@ const sendMessage = async () => {
     Message.warning('请先登录后再发送消息')
     return
   }
+  if (!props.channel?.name) {
+    Message.error('频道信息不完整')
+    return
+  }
 
   const content = inputText.value.trim()
   inputText.value = ''
 
   try {
-    const res = await apiSendMessage(content)
+    const res = await apiSendMessage(props.channel.name, content)
     if (res.code === 201 && res.data) {
       // 添加自己发送的消息
       messages.value.push({
@@ -187,15 +203,21 @@ const connectWebSocket = () => {
     return
   }
 
+  if (!props.channel?.name) {
+    console.log('No channel, skip WebSocket connection')
+    return
+  }
+
   try {
     const echo = getEcho()
+    const wsChannelName = `chat.${props.channel.name}`
     
-    echoChannel = echo.join('lobby')
+    echoChannel = echo.join(wsChannelName)
       .here((users) => {
         // 当前在线用户列表
         onlineUsers.value = users
         isConnected.value = true
-        console.log('Connected to lobby, online users:', users)
+        console.log(`Connected to ${wsChannelName}, online users:`, users)
       })
       .joining((user) => {
         // 有用户加入
@@ -236,6 +258,23 @@ const connectWebSocket = () => {
   }
 }
 
+// 监听频道变化，重新连接
+watch(() => props.channel, (newChannel, oldChannel) => {
+  if (newChannel?.name !== oldChannel?.name) {
+    // 断开旧连接
+    if (echoChannel) {
+      echoChannel.leave()
+      echoChannel = null
+    }
+    // 清空消息
+    messages.value = []
+    isConnected.value = false
+    // 重新加载
+    loadHistory()
+    connectWebSocket()
+  }
+}, { deep: true })
+
 onMounted(() => {
   loadHistory()
   connectWebSocket()
@@ -273,8 +312,25 @@ onUnmounted(() => {
 
 .header-info {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 8px;
+}
+
+.back-btn:hover {
+  border-color: #58a6ff;
+  color: #58a6ff;
 }
 
 .channel-status {
