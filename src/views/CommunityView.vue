@@ -39,6 +39,10 @@
             <template #icon><icon-image /></template>
             [图床服务]
           </a-menu-item>
+          <a-menu-item key="6">
+            <template #icon><icon-user-group /></template>
+            [同行Labmem]
+          </a-menu-item>
         </a-menu>
 
         <div class="user-panel">
@@ -81,7 +85,7 @@
             <a-col :span="17">
               
               <!-- 帖子列表：日志流风格 -->
-              <div v-if="activeKey !== '4' && activeKey !== '5'" class="log-feed">
+              <div v-if="activeKey !== '4' && activeKey !== '5' && activeKey !== '6'" class="log-feed">
                 <div class="feed-header-bar">
                   <span>ID</span>
                   <span>主题</span>
@@ -129,6 +133,19 @@
               <!-- 图床服务 -->
               <ImageHosting v-else-if="activeKey === '5'" />
 
+              <!-- 同行Labmem：好友列表 / 私聊 -->
+              <template v-else-if="activeKey === '6'">
+                <FriendList 
+                  v-if="!selectedFriend" 
+                  @enter-chat="handleEnterPrivateChat" 
+                />
+                <PrivateChatRoom 
+                  v-else 
+                  :friend="selectedFriend" 
+                  @back="handleBackToFriends" 
+                />
+              </template>
+
             </a-col>
             
             <a-col :span="7">
@@ -169,14 +186,17 @@
 import { ref, computed } from 'vue'
 import { 
   IconHome, IconCode, IconBulb, IconMessage, 
-  IconPlus, IconHeart, IconShareAlt, IconImage
+  IconPlus, IconHeart, IconShareAlt, IconImage, IconUserGroup
 } from '@arco-design/web-vue/es/icon'
 import ChatRoom from '../components/ChatRoom.vue'
 import ChannelList from '../components/ChannelList.vue'
 import ImageHosting from '../components/ImageHosting.vue'
+import FriendList from '../components/FriendList.vue'
+import PrivateChatRoom from '../components/PrivateChatRoom.vue'
 
 const activeKey = ref('1')
 const selectedChannel = ref(null)
+const selectedFriend = ref(null)
 
 // 进入频道
 const handleEnterChannel = (channel) => {
@@ -186,6 +206,16 @@ const handleEnterChannel = (channel) => {
 // 返回频道列表
 const handleBackToChannels = () => {
   selectedChannel.value = null
+}
+
+// 进入私聊
+const handleEnterPrivateChat = (friend) => {
+  selectedFriend.value = friend
+}
+
+// 返回好友列表
+const handleBackToFriends = () => {
+  selectedFriend.value = null
 }
 
 const mockData = ref([

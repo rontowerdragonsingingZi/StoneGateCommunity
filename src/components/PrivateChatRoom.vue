@@ -1,12 +1,12 @@
 <template>
   <BaseChatRoom
-    :title="channel?.display_name || 'UNKNOWN'"
-    title-prefix="#"
-    prompt="phoenix@chat:~$"
+    :title="friend?.name || 'UNKNOWN'"
+    title-prefix="@"
+    prompt="dm@private:~$"
     :messages="messages"
     :is-connected="isConnected"
-    :online-count="onlineUsers.length"
-    :show-online-count="true"
+    :online-count="0"
+    :show-online-count="false"
     @back="$emit('back')"
     @send="sendMessage"
   />
@@ -16,13 +16,13 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { getEcho } from '../echo'
-import { sendMessage as apiSendMessage, getChatHistory } from '../api/chat'
+import { sendPrivateMessage, getPrivateChatHistory, makeConversationId } from '../api/privateChat'
 import { getToken } from '../api/request'
 import BaseChatRoom from './BaseChatRoom.vue'
 
 // Props
 const props = defineProps({
-  channel: {
+  friend: {
     type: Object,
     required: true
   }
@@ -42,12 +42,11 @@ const getCurrentUser = () => {
 }
 
 const messages = ref([])
-const onlineUsers = ref([])
 const isConnected = ref(false)
 const isLoading = ref(false)
 const currentUser = ref(getCurrentUser())
 
-// 用户颜色映射（根据 ID 生成稳定颜色）
+// 用户颜色映射
 const userColors = [
   '#e67e22', '#9b59b6', '#2ecc71', '#3498db', 
   '#e74c3c', '#1abc9c', '#f39c12', '#8e44ad'
@@ -71,25 +70,25 @@ const formatId = (id) => `0x${id.toString(16).toUpperCase()}`
 
 // 加载历史消息
 const loadHistory = async () => {
-  if (!getToken() || !props.channel?.name) return
+  if (!getToken() || !props.friend?.id) return
   
   isLoading.value = true
   try {
-    const res = await getChatHistory({ channel: props.channel.name, limit: 50 })
+    const res = await getPrivateChatHistory({ friendId: props.friend.id, limit: 50 })
     if (res.code === 200 && res.data?.items) {
       messages.value = res.data.items.map(msg => ({
         id: formatId(msg.id),
-        visid: msg.id,
-        author: msg.user?.name || 'Unknown',
-        avatarChar: getAvatarChar(msg.user?.name),
-        color: getUserColor(msg.user?.id || 0),
+        rawId: msg.id,
+        author: msg.sender?.name || 'Unknown',
+        avatarChar: getAvatarChar(msg.sender?.name),
+        color: getUserColor(msg.sender?.id || 0),
         time: formatTime(msg.created_at),
         text: msg.content,
-        isSelf: msg.user?.id === currentUser.value?.id
+        isSelf: msg.sender?.id === currentUser.value?.id
       }))
     }
   } catch (err) {
-    console.error('Failed to load chat history:', err)
+    console.error('Failed to load private chat history:', err)
   } finally {
     isLoading.value = false
   }
@@ -102,21 +101,20 @@ const sendMessage = async (content) => {
     Message.warning('请先登录后再发送消息')
     return
   }
-  if (!props.channel?.name) {
-    Message.error('频道信息不完整')
+  if (!props.friend?.id) {
+    Message.error('好友信息不完整')
     return
   }
 
   try {
-    const res = await apiSendMessage(props.channel.name, content)
+    const res = await sendPrivateMessage(props.friend.id, content)
     if (res.code === 201 && res.data) {
-      // 添加自己发送的消息
       messages.value.push({
         id: formatId(res.data.id),
         rawId: res.data.id,
-        author: res.data.user?.name || currentUser.value?.name || 'Me',
-        avatarChar: getAvatarChar(res.data.user?.name || currentUser.value?.name),
-        color: getUserColor(res.data.user?.id || currentUser.value?.id || 0),
+        author: res.data.sender?.name || currentUser.value?.name || 'Me',
+        avatarChar: getAvatarChar(res.data.sender?.name || currentUser.value?.name),
+        color: getUserColor(res.data.sender?.id || currentUser.value?.id || 0),
         time: formatTime(res.data.created_at),
         text: res.data.content,
         isSelf: true
@@ -130,7 +128,7 @@ const sendMessage = async (content) => {
   }
 }
 
-// 连接 WebSocket
+// 连接 WebSocket (Private Channel)
 let echoChannel = null
 
 const connectWebSocket = () => {
@@ -139,66 +137,60 @@ const connectWebSocket = () => {
     return
   }
 
-  if (!props.channel?.name) {
-    console.log('No channel, skip WebSocket connection')
+  if (!props.friend?.id || !currentUser.value?.id) {
+    console.log('No friend or user info, skip WebSocket connection')
     return
   }
 
   try {
     const echo = getEcho()
-    const wsChannelName = `chat.${props.channel.name}`
+    const conversationId = makeConversationId(currentUser.value.id, props.friend.id)
+    const wsChannelName = `private-chat.${conversationId}`
     
-    echoChannel = echo.join(wsChannelName)
-      .here((users) => {
-        // 当前在线用户列表
-        onlineUsers.value = users
-        isConnected.value = true
-        console.log(`Connected to ${wsChannelName}, online users:`, users)
-      })
-      .joining((user) => {
-        // 有用户加入
-        onlineUsers.value.push(user)
-        console.log('User joined:', user)
-      })
-      .leaving((user) => {
-        // 有用户离开
-        onlineUsers.value = onlineUsers.value.filter(u => u.id !== user.id)
-        console.log('User left:', user)
-      })
+    // 使用 private() 而非 join()，因为这是 Private Channel
+    echoChannel = echo.private(wsChannelName)
       .listen('.message.sent', (e) => {
-        // 收到新消息（来自其他用户）
-        console.log('Message received:', e)
+        console.log('Private message received:', e)
         
         // 避免重复添加自己的消息
-        if (e.user?.id === currentUser.value?.id) return
+        if (e.sender?.id === currentUser.value?.id) return
         
         messages.value.push({
           id: formatId(e.id),
           rawId: e.id,
-          author: e.user?.name || 'Unknown',
-          avatarChar: getAvatarChar(e.user?.name),
-          color: getUserColor(e.user?.id || 0),
+          author: e.sender?.name || 'Unknown',
+          avatarChar: getAvatarChar(e.sender?.name),
+          color: getUserColor(e.sender?.id || 0),
           time: formatTime(e.created_at),
           text: e.content,
-        isSelf: false
+          isSelf: false
         })
       })
       .error((error) => {
         console.error('WebSocket error:', error)
         isConnected.value = false
       })
+    
+    isConnected.value = true
+    console.log(`Connected to ${wsChannelName}`)
   } catch (err) {
     console.error('Failed to connect WebSocket:', err)
     isConnected.value = false
   }
 }
 
-// 监听频道变化，重新连接
-watch(() => props.channel, (newChannel, oldChannel) => {
-  if (newChannel?.name !== oldChannel?.name) {
+// 监听好友变化，重新连接
+watch(() => props.friend, (newFriend, oldFriend) => {
+  if (newFriend?.id !== oldFriend?.id) {
     // 断开旧连接
     if (echoChannel) {
-      echoChannel.leave()
+      const oldConversationId = oldFriend ? makeConversationId(currentUser.value.id, oldFriend.id) : null
+      if (oldConversationId) {
+        try {
+          const echo = getEcho()
+          echo.leave(`private-chat.${oldConversationId}`)
+        } catch (e) {}
+      }
       echoChannel = null
     }
     // 清空消息
@@ -216,8 +208,12 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (echoChannel) {
-    echoChannel.leave()
+  if (echoChannel && currentUser.value?.id && props.friend?.id) {
+    try {
+      const echo = getEcho()
+      const conversationId = makeConversationId(currentUser.value.id, props.friend.id)
+      echo.leave(`private-chat.${conversationId}`)
+    } catch (e) {}
   }
 })
 </script>
