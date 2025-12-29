@@ -43,6 +43,10 @@
             <template #icon><icon-user-group /></template>
             [同行Labmem]
           </a-menu-item>
+          <a-menu-item key="7">
+            <template #icon><icon-folder /></template>
+            [我的会议]
+          </a-menu-item>
         </a-menu>
 
         <div class="user-panel">
@@ -85,7 +89,7 @@
             <a-col :span="17">
               
               <!-- 帖子列表：日志流风格 -->
-              <div v-if="activeKey !== '4' && activeKey !== '5' && activeKey !== '6'" class="log-feed">
+              <div v-if="activeKey !== '4' && activeKey !== '5' && activeKey !== '6' && activeKey !== '7'" class="log-feed">
                 <div class="feed-header-bar">
                   <span>ID</span>
                   <span>主题</span>
@@ -146,6 +150,19 @@
                 />
               </template>
 
+              <!-- 我的会议：我创建的频道 -->
+              <template v-else-if="activeKey === '7'">
+                <MyChannels 
+                  v-if="!selectedMyChannel" 
+                  @enter-channel="handleEnterMyChannel" 
+                />
+                <ChatRoom 
+                  v-else 
+                  :channel="selectedMyChannel" 
+                  @back="handleBackToMyChannels" 
+                />
+              </template>
+
             </a-col>
             
             <a-col :span="7">
@@ -186,17 +203,19 @@
 import { ref, computed } from 'vue'
 import { 
   IconHome, IconCode, IconBulb, IconMessage, 
-  IconPlus, IconHeart, IconShareAlt, IconImage, IconUserGroup
+  IconPlus, IconHeart, IconShareAlt, IconImage, IconUserGroup, IconFolder
 } from '@arco-design/web-vue/es/icon'
 import ChatRoom from '../components/ChatRoom.vue'
 import ChannelList from '../components/ChannelList.vue'
 import ImageHosting from '../components/ImageHosting.vue'
 import FriendList from '../components/FriendList.vue'
 import PrivateChatRoom from '../components/PrivateChatRoom.vue'
+import MyChannels from '../components/MyChannels.vue'
 
 const activeKey = ref('1')
 const selectedChannel = ref(null)
 const selectedFriend = ref(null)
+const selectedMyChannel = ref(null)
 
 // 进入频道
 const handleEnterChannel = (channel) => {
@@ -216,6 +235,16 @@ const handleEnterPrivateChat = (friend) => {
 // 返回好友列表
 const handleBackToFriends = () => {
   selectedFriend.value = null
+}
+
+// 进入我的频道
+const handleEnterMyChannel = (channel) => {
+  selectedMyChannel.value = channel
+}
+
+// 返回我的频道列表
+const handleBackToMyChannels = () => {
+  selectedMyChannel.value = null
 }
 
 const mockData = ref([

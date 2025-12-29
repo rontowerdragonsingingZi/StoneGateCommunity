@@ -10,6 +10,7 @@
     @back="$emit('back')"
     @send="sendMessage"
     @send-file="sendFileMessage"
+    @send-sticker="sendStickerMessage"
   />
 </template>
 
@@ -137,6 +138,12 @@ const sendMessage = async (content, type = 'text') => {
 const sendFileMessage = async (fileInfo) => {
   // fileInfo: { url, type, name, mime, size }
   await sendMessage(fileInfo.url, fileInfo.type)
+}
+
+// 发送表情消息
+const sendStickerMessage = async (sticker) => {
+  // sticker: { id, url, name, ... }
+  await sendMessage(sticker.url, 'sticker')
 }
 
 // 连接 WebSocket

@@ -1,10 +1,17 @@
 import { post, get } from './request'
 
 /**
- * 获取频道列表
+ * 获取频道列表（公开频道）
  */
 export function getChannels() {
   return get('/channels')
+}
+
+/**
+ * 获取我创建的频道
+ */
+export function getMyChannels() {
+  return get('/channels/mine')
 }
 
 /**

@@ -52,6 +52,10 @@
                 <span class="file-action">[下载]</span>
               </a>
             </div>
+            <!-- 表情消息 -->
+            <div v-else-if="msg.type === 'sticker'" class="msg-sticker">
+              <img :src="msg.text" alt="sticker" />
+            </div>
             <!-- 系统消息 -->
             <p v-else-if="msg.type === 'system'" class="system-msg">{{ msg.text }}</p>
           </div>
@@ -81,10 +85,20 @@
           style="display: none"
           @change="handleFileSelect"
         />
+        <button class="sticker-btn" @click="toggleStickerPicker">
+          😀
+        </button>
         <button class="file-btn" @click="triggerFileSelect" :disabled="isUploading">
           {{ isUploading ? 'UPLOADING...' : '📎 FILE' }}
         </button>
         <button class="send-btn" @click="handleSend">SEND_DATA</button>
+        
+        <!-- 表情选择面板 -->
+        <StickerPicker 
+          :visible="showStickerPicker" 
+          @select="handleStickerSelect"
+          @close="showStickerPicker = false"
+        />
       </div>
     </div>
   </div>
@@ -93,6 +107,7 @@
 <script setup>
 import { ref, nextTick, watch } from 'vue'
 import { uploadFile } from '../api/upload'
+import StickerPicker from './StickerPicker.vue'
 
 const props = defineProps({
   title: {
@@ -125,13 +140,14 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['back', 'send', 'sendFile'])
+const emit = defineEmits(['back', 'send', 'sendFile', 'sendSticker'])
 
 const messageContainer = ref(null)
 const inputText = ref('')
 const fileInput = ref(null)
 const isUploading = ref(false)
 const previewImageUrl = ref(null)
+const showStickerPicker = ref(false)
 
 // 滚动到底部
 const scrollToBottom = () => {
@@ -201,6 +217,17 @@ const getFileName = (url) => {
 // 预览图片
 const previewImage = (url) => {
   previewImageUrl.value = url
+}
+
+// 切换表情选择面板
+const toggleStickerPicker = () => {
+  showStickerPicker.value = !showStickerPicker.value
+}
+
+// 选择表情
+const handleStickerSelect = (sticker) => {
+  emit('sendSticker', sticker)
+  showStickerPicker.value = false
 }
 
 // 监听消息变化，自动滚动
@@ -399,6 +426,7 @@ defineExpose({
   padding: 12px 16px;
   gap: 12px;
   transition: border-color 0.3s;
+  position: relative;
 }
 
 .input-console:focus-within {
@@ -458,6 +486,21 @@ defineExpose({
   cursor: not-allowed;
 }
 
+.sticker-btn {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  font-size: 16px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sticker-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #58a6ff;
+}
+
 /* 图片消息 */
 .msg-image img {
   max-width: 300px;
@@ -513,6 +556,13 @@ defineExpose({
 .system-msg {
   color: #8b949e;
   font-style: italic;
+}
+
+/* 表情消息 */
+.msg-sticker img {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
 }
 
 /* 图片预览 */

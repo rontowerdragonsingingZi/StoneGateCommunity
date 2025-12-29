@@ -7,11 +7,6 @@
         <h2 class="header-title">ROUND_TABLE_CONFERENCE</h2>
         <span class="channel-count">TOTAL: {{ channels.length }}</span>
       </div>
-      <div class="header-actions">
-        <button class="create-btn" @click="showCreateModal = true">
-          <span class="btn-icon">+</span> NEW_CHANNEL
-        </button>
-      </div>
     </div>
 
     <!-- 频道列表 -->
@@ -55,73 +50,18 @@
         <span>>> NO CHANNELS AVAILABLE</span>
       </div>
     </div>
-
-    <!-- 创建频道模态框 -->
-    <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
-      <div class="modal-content">
-        <div class="modal-header">
-          <span class="modal-title">[CREATE_NEW_CHANNEL]</span>
-          <button class="close-btn" @click="showCreateModal = false">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label>>> NAME (lowercase, a-z, 0-9, _, -):</label>
-            <input
-              v-model="newChannel.name"
-              type="text"
-              placeholder="channel_name"
-              class="terminal-input"
-              pattern="[a-z0-9_-]+"
-            />
-          </div>
-          <div class="form-group">
-            <label>>> DISPLAY_NAME:</label>
-            <input
-              v-model="newChannel.display_name"
-              type="text"
-              placeholder="显示名称"
-              class="terminal-input"
-            />
-          </div>
-          <div class="form-group">
-            <label>>> DESCRIPTION (optional):</label>
-            <input
-              v-model="newChannel.description"
-              type="text"
-              placeholder="频道描述..."
-              class="terminal-input"
-            />
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="cancel-btn" @click="showCreateModal = false">CANCEL</button>
-          <button class="submit-btn" @click="handleCreateChannel" :disabled="isCreating">
-            {{ isCreating ? 'CREATING...' : 'CREATE_CHANNEL()' }}
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Message } from '@arco-design/web-vue'
-import { getChannels, createChannel } from '../api/channel'
-import { getToken } from '../api/request'
+import { getChannels } from '../api/channel'
 
 const emit = defineEmits(['enter-channel'])
 
 const channels = ref([])
 const isLoading = ref(false)
-const showCreateModal = ref(false)
-const isCreating = ref(false)
-
-const newChannel = ref({
-  name: '',
-  display_name: '',
-  description: ''
-})
 
 // 加载频道列表
 const loadChannels = async () => {
@@ -142,48 +82,6 @@ const loadChannels = async () => {
 // 进入频道
 const enterChannel = (channel) => {
   emit('enter-channel', channel)
-}
-
-// 创建新频道
-const handleCreateChannel = async () => {
-  if (!getToken()) {
-    Message.warning('请先登录')
-    return
-  }
-
-  if (!newChannel.value.name || !newChannel.value.display_name) {
-    Message.warning('请填写频道名称和显示名称')
-    return
-  }
-
-  // 验证频道名格式
-  if (!/^[a-z0-9_-]+$/.test(newChannel.value.name)) {
-    Message.warning('频道名称只能包含小写字母、数字、下划线和短横线')
-    return
-  }
-
-  isCreating.value = true
-  try {
-    const res = await createChannel({
-      name: newChannel.value.name,
-      display_name: newChannel.value.display_name,
-      description: newChannel.value.description || null
-    })
-
-    if (res.code === 0 && res.data) {
-      Message.success('频道创建成功')
-      channels.value.push(res.data)
-      showCreateModal.value = false
-      newChannel.value = { name: '', display_name: '', description: '' }
-    } else {
-      Message.error(res.message || '创建失败')
-    }
-  } catch (err) {
-    console.error('Failed to create channel:', err)
-    Message.error('创建频道失败')
-  } finally {
-    isCreating.value = false
-  }
 }
 
 onMounted(() => {
@@ -234,29 +132,6 @@ onMounted(() => {
 .channel-count {
   font-size: 12px;
   color: #8b949e;
-}
-
-.create-btn {
-  background: transparent;
-  border: 1px solid #238636;
-  color: #238636;
-  font-family: inherit;
-  font-size: 12px;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.create-btn:hover {
-  background: #238636;
-  color: #ffffff;
-}
-
-.btn-icon {
-  font-weight: bold;
 }
 
 /* Channel Grid */
@@ -373,125 +248,5 @@ onMounted(() => {
 
 @keyframes blink {
   50% { opacity: 0; }
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: #161b22;
-  border: 1px solid #30363d;
-  width: 480px;
-  max-width: 90%;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #30363d;
-}
-
-.modal-title {
-  color: #7ee787;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.close-btn {
-  background: transparent;
-  border: none;
-  color: #8b949e;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.close-btn:hover {
-  color: #c9d1d9;
-}
-
-.modal-body {
-  padding: 20px;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  display: block;
-  color: #8b949e;
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-
-.terminal-input {
-  width: 100%;
-  background: #010409;
-  border: 1px solid #30363d;
-  color: #c9d1d9;
-  padding: 10px 12px;
-  font-family: inherit;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.terminal-input:focus {
-  border-color: #58a6ff;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 20px;
-  border-top: 1px solid #30363d;
-}
-
-.cancel-btn {
-  background: transparent;
-  border: 1px solid #30363d;
-  color: #8b949e;
-  font-family: inherit;
-  font-size: 12px;
-  padding: 8px 16px;
-  cursor: pointer;
-}
-
-.cancel-btn:hover {
-  border-color: #8b949e;
-  color: #c9d1d9;
-}
-
-.submit-btn {
-  background: #238636;
-  border: 1px solid #238636;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 12px;
-  padding: 8px 16px;
-  cursor: pointer;
-}
-
-.submit-btn:hover:not(:disabled) {
-  background: #2ea043;
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 </style>
