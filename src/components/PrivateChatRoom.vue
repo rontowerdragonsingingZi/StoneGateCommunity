@@ -234,3 +234,10 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<style scoped>
+/* 确保组件占满父容器高度 */
+:deep(.chat-interface) {
+  height: 100%;
+}
+</style>

@@ -6,7 +6,10 @@
     :messages="messages"
     :is-connected="isConnected"
     :online-count="onlineUsers.length"
+    :online-users="onlineUsers"
+    :announcement="channel?.announcement || ''"
     :show-online-count="true"
+    :show-side-panel="true"
     @back="$emit('back')"
     @send="sendMessage"
     @send-file="sendFileMessage"
@@ -238,3 +241,10 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<style scoped>
+/* 确保组件占满父容器高度 */
+:deep(.chat-interface) {
+  height: 100%;
+}
+</style>

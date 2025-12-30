@@ -19,46 +19,90 @@
       </div>
     </div>
 
-    <!-- 消息列表区域 -->
-    <div class="message-area" ref="messageContainer">
-      <div 
-        v-for="(msg, index) in messages" 
-        :key="index" 
-        class="message-row"
-        :class="{ 'self': msg.isSelf }"
-      >
-        <div class="msg-avatar" :style="{ borderColor: msg.color }">
-          <span class="avatar-char">{{ msg.avatarChar }}</span>
+    <!-- 主内容区域：消息列表 + 右侧面板 -->
+    <div class="chat-main">
+      <!-- 消息列表区域 -->
+      <CustomScrollbar class="message-area" ref="messageContainer">
+        <div 
+          v-for="(msg, index) in messages" 
+          :key="index" 
+          class="message-row"
+          :class="{ 'self': msg.isSelf }"
+        >
+          <div class="msg-avatar" :style="{ borderColor: msg.color }">
+            <span class="avatar-char">{{ msg.avatarChar }}</span>
+          </div>
+          
+          <div class="msg-content-wrapper">
+            <div class="msg-meta">
+              <span class="msg-author" :style="{ color: msg.color }">{{ msg.author }}</span>
+              <span class="msg-time">{{ msg.time }}</span>
+              <span class="msg-id">ID:{{ msg.id }}</span>
+            </div>
+            <div class="msg-bubble" :style="{ borderColor: msg.color }">
+              <!-- 文本消息 -->
+              <p v-if="msg.type === 'text' || !msg.type">{{ msg.text }}</p>
+              <!-- 图片消息 -->
+              <div v-else-if="msg.type === 'image'" class="msg-image">
+                <img :src="msg.text" alt="image" @click="previewImage(msg.text)" />
+              </div>
+              <!-- 文件消息 -->
+              <div v-else-if="msg.type === 'file'" class="msg-file">
+                <a :href="msg.text" target="_blank" class="file-link">
+                  <span class="file-icon">📄</span>
+                  <span class="file-name">{{ getFileName(msg.text) }}</span>
+                  <span class="file-action">[下载]</span>
+                </a>
+              </div>
+              <!-- 表情消息 -->
+              <div v-else-if="msg.type === 'sticker'" class="msg-sticker">
+                <img :src="msg.text" alt="sticker" />
+              </div>
+              <!-- 系统消息 -->
+              <p v-else-if="msg.type === 'system'" class="system-msg">{{ msg.text }}</p>
+            </div>
+          </div>
         </div>
-        
-        <div class="msg-content-wrapper">
-          <div class="msg-meta">
-            <span class="msg-author" :style="{ color: msg.color }">{{ msg.author }}</span>
-            <span class="msg-time">{{ msg.time }}</span>
-            <span class="msg-id">ID:{{ msg.id }}</span>
+      </CustomScrollbar>
+
+      <!-- 右侧面板：在线用户 + 频道公告 -->
+      <div class="side-panel" v-if="showSidePanel">
+        <!-- 频道公告 -->
+        <div class="panel-section announcement-section" v-if="announcement">
+          <div class="section-header">
+            <span class="section-title">频道公告</span>
+            <span class="section-icon">▶</span>
           </div>
-          <div class="msg-bubble" :style="{ borderColor: msg.color }">
-            <!-- 文本消息 -->
-            <p v-if="msg.type === 'text' || !msg.type">{{ msg.text }}</p>
-            <!-- 图片消息 -->
-            <div v-else-if="msg.type === 'image'" class="msg-image">
-              <img :src="msg.text" alt="image" @click="previewImage(msg.text)" />
-            </div>
-            <!-- 文件消息 -->
-            <div v-else-if="msg.type === 'file'" class="msg-file">
-              <a :href="msg.text" target="_blank" class="file-link">
-                <span class="file-icon">📄</span>
-                <span class="file-name">{{ getFileName(msg.text) }}</span>
-                <span class="file-action">[下载]</span>
-              </a>
-            </div>
-            <!-- 表情消息 -->
-            <div v-else-if="msg.type === 'sticker'" class="msg-sticker">
-              <img :src="msg.text" alt="sticker" />
-            </div>
-            <!-- 系统消息 -->
-            <p v-else-if="msg.type === 'system'" class="system-msg">{{ msg.text }}</p>
+          <div class="announcement-content">
+            <p>{{ announcement }}</p>
           </div>
+        </div>
+
+        <!-- 在线用户列表 -->
+        <div class="panel-section members-section">
+          <div class="section-header">
+            <span class="section-title">在线成员</span>
+            <span class="member-count">{{ onlineUsers.length }}</span>
+          </div>
+          <CustomScrollbar class="member-list-scroll">
+            <div 
+              v-for="user in onlineUsers" 
+              :key="user.id" 
+              class="member-item"
+            >
+              <div class="member-avatar" :style="{ borderColor: getUserColor(user.id) }">
+                <img v-if="user.avatar" :src="user.avatar" :alt="user.name" />
+                <span v-else class="avatar-char">{{ getAvatarChar(user.name) }}</span>
+              </div>
+              <div class="member-info">
+                <span class="member-name" :style="{ color: getUserColor(user.id) }">{{ user.name }}</span>
+                <span v-if="user.is_bot" class="bot-badge">BOT</span>
+              </div>
+            </div>
+            <div v-if="onlineUsers.length === 0" class="no-members">
+              <span>暂无在线成员</span>
+            </div>
+          </CustomScrollbar>
         </div>
       </div>
     </div>
@@ -108,6 +152,7 @@
 import { ref, nextTick, watch } from 'vue'
 import { uploadFile } from '../api/upload'
 import StickerPicker from './StickerPicker.vue'
+import CustomScrollbar from './CustomScrollbar.vue'
 
 const props = defineProps({
   title: {
@@ -137,8 +182,33 @@ const props = defineProps({
   showOnlineCount: {
     type: Boolean,
     default: true
+  },
+  onlineUsers: {
+    type: Array,
+    default: () => []
+  },
+  announcement: {
+    type: String,
+    default: ''
+  },
+  showSidePanel: {
+    type: Boolean,
+    default: true
   }
 })
+
+// 用户颜色映射
+const userColors = [
+  '#e67e22', '#9b59b6', '#2ecc71', '#3498db', 
+  '#e74c3c', '#1abc9c', '#f39c12', '#8e44ad'
+]
+const getUserColor = (userId) => userColors[userId % userColors.length]
+
+// 获取头像字符
+const getAvatarChar = (name) => {
+  if (!name) return '??'
+  return name.substring(0, 2)
+}
 
 const emit = defineEmits(['back', 'send', 'sendFile', 'sendSticker'])
 
@@ -329,15 +399,164 @@ defineExpose({
   50% { opacity: 1; }
 }
 
+/* Main Content Area */
+.chat-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
 /* Message Area */
 .message-area {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0; /* 允许在 flex 容器中收缩，触发滚动 */
+}
+
+.message-area :deep(.scrollbar-content) {
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 24px;
   scroll-behavior: smooth;
+}
+
+/* Side Panel */
+.side-panel {
+  width: 240px;
+  background: #161b22;
+  border-left: 1px solid #30363d;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-section {
+  border-bottom: 1px solid #30363d;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #0d1117;
+  border-bottom: 1px solid #21262d;
+}
+
+.section-title {
+  font-size: 12px;
+  color: #8b949e;
+  font-weight: bold;
+}
+
+.section-icon {
+  color: #58a6ff;
+  font-size: 10px;
+}
+
+.member-count {
+  background: #238636;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Announcement */
+.announcement-content {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #c9d1d9;
+  line-height: 1.5;
+}
+
+.announcement-content p {
+  margin: 0;
+}
+
+/* Member List */
+.members-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.member-list-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.member-list-scroll :deep(.scrollbar-content) {
+  padding: 8px 0;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.member-item:hover {
+  background: #21262d;
+}
+
+.member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: #010409;
+  border: 2px solid #30363d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.member-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.member-avatar .avatar-char {
+  font-size: 12px;
+}
+
+.member-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.member-name {
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bot-badge {
+  background: #8957e5;
+  color: #fff;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+.no-members {
+  padding: 20px 16px;
+  text-align: center;
+  color: #484f58;
+  font-size: 12px;
 }
 
 .message-row {

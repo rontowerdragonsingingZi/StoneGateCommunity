@@ -304,10 +304,21 @@ const trendingTopics = ref([
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
 
 .community-container {
-  min-height: 100vh;
+  height: 100vh;
   background: #0d1117; /* GitHub Dark Dimmed 风格 */
   color: #c9d1d9;
   font-family: 'JetBrains Mono', 'Segoe UI', monospace;
+  overflow: hidden;
+}
+
+.community-container :deep(.arco-layout) {
+  height: 100%;
+}
+
+.community-container :deep(.arco-layout-content) {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 侧边栏 */
@@ -460,6 +471,17 @@ const trendingTopics = ref([
 /* 内容区 */
 .content-wrapper {
   padding: 24px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.content-wrapper :deep(.arco-row) {
+  height: 100%;
+}
+
+.content-wrapper :deep(.arco-col) {
+  height: 100%;
+  overflow: hidden;
 }
 
 /* 日志流 (Feed) */
@@ -467,6 +489,8 @@ const trendingTopics = ref([
   display: flex;
   flex-direction: column;
   gap: 1px; /* 紧凑间距 */
+  height: 100%;
+  overflow-y: auto;
 }
 
 .feed-header-bar {
