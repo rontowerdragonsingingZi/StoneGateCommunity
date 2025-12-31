@@ -263,8 +263,7 @@ const handleMenuClick = (key) => {
 
 .main-content {
   flex: 1;
-  /* 如果 Header 是 fixed，需要 padding-top 避免内容被遮挡，
-     但对于 Home 页（透明 Header），不需要 padding */
+  background: #0d1117;
 }
 .layout:not(:has(.nav-header.transparent)) .main-content {
   padding-top: 64px;

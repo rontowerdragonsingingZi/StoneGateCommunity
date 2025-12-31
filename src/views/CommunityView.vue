@@ -92,7 +92,7 @@
               <WorldlineData v-if="activeKey === '3'" />
 
               <!-- 帖子列表：日志流风格 -->
-              <div v-if="activeKey !== '3' && activeKey !== '4' && activeKey !== '5' && activeKey !== '6' && activeKey !== '7'" class="log-feed">
+              <CustomScrollbar v-if="activeKey !== '3' && activeKey !== '4' && activeKey !== '5' && activeKey !== '6' && activeKey !== '7'" class="log-feed">
                 <div class="feed-header-bar">
                   <span>ID</span>
                   <span>主题</span>
@@ -122,7 +122,7 @@
                     <button class="text-btn"><icon-share-alt /> 转发</button>
                   </div>
                 </div>
-              </div>
+              </CustomScrollbar>
 
               <!-- 圆桌会议：频道列表 / 聊天室 -->
               <template v-else-if="activeKey === '4'">
@@ -217,6 +217,7 @@ import FriendList from '../components/FriendList.vue'
 import PrivateChatRoom from '../components/PrivateChatRoom.vue'
 import MyChannels from '../components/MyChannels.vue'
 import WorldlineData from '../components/WorldlineData.vue'
+import CustomScrollbar from '../components/CustomScrollbar.vue'
 
 const activeKey = ref('1')
 const selectedChannel = ref(null)
@@ -474,25 +475,33 @@ const trendingTopics = ref([
 .content-wrapper {
   padding: 24px;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
 .content-wrapper :deep(.arco-row) {
   height: 100%;
+  min-height: 0;
 }
 
 .content-wrapper :deep(.arco-col) {
   height: 100%;
-  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 日志流 (Feed) */
 .log-feed {
+  height: 100%;
+  min-height: 0;
+}
+
+.log-feed :deep(.scrollbar-content) {
   display: flex;
   flex-direction: column;
-  gap: 1px; /* 紧凑间距 */
-  height: 100%;
-  overflow-y: auto;
+  gap: 1px;
+  padding-right: 8px;
 }
 
 .feed-header-bar {
