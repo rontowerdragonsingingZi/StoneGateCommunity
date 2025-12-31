@@ -1,5 +1,5 @@
 <template>
-  <div class="loading-screen" v-if="visible">
+  <div class="loading-screen" :class="{ fullscreen }">
     <div class="loading-content">
       <div class="loading-logo">FG_LAB</div>
       <div class="loading-bar">
@@ -14,32 +14,39 @@
 import { ref, onMounted } from 'vue'
 
 const props = defineProps({
-  minDuration: { type: Number, default: 800 }
+  fullscreen: { type: Boolean, default: false },
+  minDuration: { type: Number, default: 1000 }
 })
 
 const emit = defineEmits(['loaded'])
-const visible = ref(true)
 const text = ref('INITIALIZING SYSTEM...')
 
 onMounted(() => {
+  const start = Date.now()
   setTimeout(() => {
     text.value = 'LOADING RESOURCES...'
-    setTimeout(() => {
-      visible.value = false
-      emit('loaded')
-    }, props.minDuration)
-  }, 200)
+  }, 300)
+  
+  // 确保至少显示 minDuration
+  setTimeout(() => {
+    emit('loaded')
+  }, props.minDuration)
 })
 </script>
 
 <style scoped>
 .loading-screen {
-  position: fixed;
-  inset: 0;
+  width: 100%;
+  height: 100%;
   background: #0d1117;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.loading-screen.fullscreen {
+  position: fixed;
+  inset: 0;
   z-index: 9999;
 }
 

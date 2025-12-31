@@ -1,5 +1,5 @@
 <template>
-  <LoadingScreen v-if="loading" @loaded="loading = false" />
+<LoadingScreen v-if="loading" fullscreen @loaded="loading = false" />
   <router-view v-else />
 </template>
 
