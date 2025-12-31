@@ -110,8 +110,6 @@ const handleMenuClick = (key) => {
   justify-content: space-between;
   padding: 0 40px;
   height: 64px;
-  max-width: 1400px;
-  margin: 0 auto;
 }
 
 .logo {
