@@ -1,8 +1,13 @@
 <template>
-  <router-view />
+  <LoadingScreen v-if="loading" @loaded="loading = false" />
+  <router-view v-else />
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import LoadingScreen from './components/LoadingScreen.vue'
+
+const loading = ref(true)
 </script>
 
 <style>
