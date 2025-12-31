@@ -39,4 +39,13 @@ const router = createRouter({
   routes
 })
 
+// 已登录用户访问首页时重定向到社区
+router.beforeEach((to, from, next) => {
+  if (to.name === 'Home' && localStorage.getItem('token')) {
+    next({ name: 'Community' })
+  } else {
+    next()
+  }
+})
+
 export default router
