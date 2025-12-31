@@ -98,6 +98,14 @@
                 @created="handlePostCreated" 
               />
 
+              <!-- 帖子详情 -->
+              <PostDetail 
+                v-else-if="selectedPost && activeKey === '1'" 
+                :post-id="selectedPost.id" 
+                @back="handleBackToList" 
+                @updated="loadPosts" 
+              />
+
               <!-- 帖子列表：日志流风格 -->
               <CustomScrollbar v-else-if="activeKey !== '3' && activeKey !== '4' && activeKey !== '5' && activeKey !== '6' && activeKey !== '7'" class="log-feed">
                 <div class="feed-header-bar">
@@ -110,7 +118,12 @@
                 <div v-if="loading" class="loading-hint">正在加载观测日志...</div>
                 <div v-else-if="posts.length === 0" class="empty-hint">暂无观测日志</div>
                 
-                <div v-for="item in posts" :key="item.id" class="log-entry">
+                <div 
+                  v-for="item in posts" 
+                  :key="item.id" 
+                  class="log-entry"
+                  @click="handleOpenPost(item)"
+                >
                   <div class="entry-meta-row">
                     <span class="entry-id">#{{ String(item.id).padStart(4, '0') }}</span>
                     <span class="entry-tag">[{{ item.tag }}]</span>
@@ -120,13 +133,13 @@
                   
                   <div class="entry-main">
                     <h3 class="entry-title">{{ item.title }}</h3>
-                    <p class="entry-desc">{{ item.content }}</p>
+                    <p class="entry-desc">{{ truncateContent(item.content) }}</p>
                     <div class="entry-cover" v-if="item.cover">
-                      <img :src="item.cover" />
+                      <img :src="item.cover" :alt="item.title" />
                     </div>
                   </div>
 
-                  <div class="entry-actions">
+                  <div class="entry-actions" @click.stop>
                     <button 
                       class="text-btn" 
                       :class="{ liked: item.is_liked }" 
@@ -236,11 +249,13 @@ import MyChannels from '../components/MyChannels.vue'
 import WorldlineData from '../components/WorldlineData.vue'
 import CustomScrollbar from '../components/CustomScrollbar.vue'
 import CreatePost from '../components/CreatePost.vue'
+import PostDetail from '../components/PostDetail.vue'
 
 const activeKey = ref('1')
 const posts = ref([])
 const loading = ref(false)
 const showCreatePost = ref(false)
+const selectedPost = ref(null)
 const selectedChannel = ref(null)
 const selectedFriend = ref(null)
 const selectedMyChannel = ref(null)
@@ -317,6 +332,23 @@ const handlePostCreated = () => {
   loadPosts()
 }
 
+// 打开帖子详情
+const handleOpenPost = (post) => {
+  selectedPost.value = post
+}
+
+// 返回列表
+const handleBackToList = () => {
+  selectedPost.value = null
+}
+
+// 截断内容
+const truncateContent = (content, maxLen = 150) => {
+  if (!content) return ''
+  const text = content.replace(/\n/g, ' ')
+  return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
+}
+
 onMounted(() => {
   loadPosts()
 })
@@ -335,7 +367,8 @@ const trendingTopics = ref([
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
 
 .community-container {
-  height: 100vh;
+  height: 100%;
+  flex: 1;
   background: #0d1117; /* GitHub Dark Dimmed 风格 */
   color: #c9d1d9;
   font-family: 'JetBrains Mono', 'Segoe UI', monospace;
@@ -512,11 +545,16 @@ const trendingTopics = ref([
   min-height: 0;
 }
 
-.content-wrapper :deep(.arco-col) {
+.content-wrapper :deep(.arco-col:first-child) {
   height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+.content-wrapper :deep(.arco-col:last-child) {
+  height: 100%;
+  overflow-y: auto;
 }
 
 /* 日志流 (Feed) */
@@ -546,13 +584,16 @@ const trendingTopics = ref([
   background: #161b22;
   border: 1px solid #30363d;
   padding: 16px;
-  margin-bottom: 16px; /* 卡片之间分开一点，更清晰 */
+  margin-bottom: 16px;
   border-radius: 6px;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
+  cursor: pointer;
 }
 
 .log-entry:hover {
   border-color: #58a6ff;
+  background: #1c2128;
+  transform: translateY(-1px);
 }
 
 .entry-meta-row {
@@ -587,16 +628,17 @@ const trendingTopics = ref([
 
 .entry-cover {
   margin-top: 12px;
-  height: 200px;
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid #30363d;
+  background: #010409;
 }
 
 .entry-cover img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  max-height: 400px;
+  object-fit: contain;
+  display: block;
 }
 
 .entry-actions {

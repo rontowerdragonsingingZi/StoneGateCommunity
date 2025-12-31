@@ -264,6 +264,9 @@ const handleMenuClick = (key) => {
 .main-content {
   flex: 1;
   background: #0d1117;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .layout:not(:has(.nav-header.transparent)) .main-content {
   padding-top: 64px;
