@@ -277,6 +277,7 @@ const handleSubmit = async () => {
   background: #0d1117;
   color: #c9d1d9;
   font-family: 'JetBrains Mono', monospace;
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -334,6 +335,8 @@ const handleSubmit = async () => {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .form-section {
@@ -514,6 +517,7 @@ const handleSubmit = async () => {
 
 .terminal-textarea {
   width: 100%;
+  box-sizing: border-box;
   background: #010409;
   border: 1px solid #30363d;
   color: #c9d1d9;
