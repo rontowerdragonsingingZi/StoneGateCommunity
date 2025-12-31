@@ -78,7 +78,7 @@
                <span class="search-icon">></span>
                <input type="text" placeholder="搜索关键词..." />
              </div>
-             <button class="action-btn new-post">
+             <button class="action-btn new-post" @click="showCreatePost = true">
               <icon-plus /> 新建帖子
              </button>
           </div>
@@ -91,8 +91,15 @@
               <!-- 世界线数据 -->
               <WorldlineData v-if="activeKey === '3'" />
 
+              <!-- 新建帖子 -->
+              <CreatePost 
+                v-else-if="showCreatePost && activeKey === '1'" 
+                @back="showCreatePost = false" 
+                @created="handlePostCreated" 
+              />
+
               <!-- 帖子列表：日志流风格 -->
-              <CustomScrollbar v-if="activeKey !== '3' && activeKey !== '4' && activeKey !== '5' && activeKey !== '6' && activeKey !== '7'" class="log-feed">
+              <CustomScrollbar v-else-if="activeKey !== '3' && activeKey !== '4' && activeKey !== '5' && activeKey !== '6' && activeKey !== '7'" class="log-feed">
                 <div class="feed-header-bar">
                   <span>ID</span>
                   <span>主题</span>
@@ -100,25 +107,34 @@
                   <span>时间</span>
                 </div>
                 
-                <div v-for="item in mockData" :key="item.id" class="log-entry">
+                <div v-if="loading" class="loading-hint">正在加载观测日志...</div>
+                <div v-else-if="posts.length === 0" class="empty-hint">暂无观测日志</div>
+                
+                <div v-for="item in posts" :key="item.id" class="log-entry">
                   <div class="entry-meta-row">
                     <span class="entry-id">#{{ String(item.id).padStart(4, '0') }}</span>
                     <span class="entry-tag">[{{ item.tag }}]</span>
-                    <span class="entry-author">@{{ item.author }}</span>
-                    <span class="entry-time">{{ item.time }}</span>
+                    <span class="entry-author">@{{ item.user?.name || '未知' }}</span>
+                    <span class="entry-time">{{ formatTime(item.created_at) }}</span>
                   </div>
                   
                   <div class="entry-main">
                     <h3 class="entry-title">{{ item.title }}</h3>
-                    <p class="entry-desc">{{ item.description }}</p>
+                    <p class="entry-desc">{{ item.content }}</p>
                     <div class="entry-cover" v-if="item.cover">
                       <img :src="item.cover" />
                     </div>
                   </div>
 
                   <div class="entry-actions">
-                    <button class="text-btn"><icon-heart /> {{ item.likes }} 赞同</button>
-                    <button class="text-btn"><icon-message /> {{ item.comments }} 回复</button>
+                    <button 
+                      class="text-btn" 
+                      :class="{ liked: item.is_liked }" 
+                      @click="handleToggleLike(item)"
+                    >
+                      <icon-heart /> {{ item.like_count }} 赞同
+                    </button>
+                    <button class="text-btn"><icon-message /> {{ item.comment_count }} 回复</button>
                     <button class="text-btn"><icon-share-alt /> 转发</button>
                   </div>
                 </div>
@@ -203,7 +219,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { getPosts, toggleLike } from '../api/post'
 
 defineOptions({ name: 'CommunityView' })
 import { 
@@ -218,8 +235,12 @@ import PrivateChatRoom from '../components/PrivateChatRoom.vue'
 import MyChannels from '../components/MyChannels.vue'
 import WorldlineData from '../components/WorldlineData.vue'
 import CustomScrollbar from '../components/CustomScrollbar.vue'
+import CreatePost from '../components/CreatePost.vue'
 
 const activeKey = ref('1')
+const posts = ref([])
+const loading = ref(false)
+const showCreatePost = ref(false)
 const selectedChannel = ref(null)
 const selectedFriend = ref(null)
 const selectedMyChannel = ref(null)
@@ -254,44 +275,51 @@ const handleBackToMyChannels = () => {
   selectedMyChannel.value = null
 }
 
-const mockData = ref([
-// ... (保留原有 mockData 不变)
-  {
-    id: 1024,
-    title: '关于时间机器的理论探讨与微波炉的偶然性',
-    description: '我们在实验中发现，当微波炉与连接到CRT电视的手机同时运作时，香蕉会发生凝胶化现象。这是否意味着我们触碰到了克尔黑洞的边缘？我们需要更多的实验数据来验证这个猜想。',
-    author: 'Okabe_Rintaro',
-    userAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
-    time: '2025-07-28 12:00:00',
-    tag: 'THEORY',
-    likes: 2048,
-    comments: 156,
-    cover: 'https://images.unsplash.com/photo-1596524430615-b46475ddff6e?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 1023,
-    title: 'Vue 3 + Three.js 粒子系统性能优化实践',
-    description: '在使用 Three.js 渲染数万个粒子模拟世界线变动时，帧率一度下降到 30fps。通过使用 BufferGeometry 和自定义 Shader，成功优化到了稳定 60fps。',
-    author: 'Super_Hacker',
-    userAvatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=100&q=80',
-    time: '2025-07-28 09:30:00',
-    tag: 'TECH',
-    likes: 892,
-    comments: 42
-  },
-  {
-    id: 1022,
-    title: '寻找 IBM 5100：它不仅是一台电脑',
-    description: '有人在秋叶原见过这台古董机吗？这关系到世界的命运。如果有线索，请务必联系我！El Psy Kongroo.',
-    author: 'John_Titor',
-    userAvatar: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?auto=format&fit=crop&w=100&q=80',
-    time: '2025-07-27 23:15:00',
-    tag: 'MISSION',
-    likes: 5671,
-    comments: 999,
-    cover: 'https://images.unsplash.com/photo-1588872657578-1a416555f303?auto=format&fit=crop&w=800&q=80'
+// 加载帖子
+const loadPosts = async () => {
+  loading.value = true
+  try {
+    const res = await getPosts({ limit: 20 })
+    posts.value = res.data.items || []
+  } catch (e) {
+    console.error('加载帖子失败', e)
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// 点赞/取消点赞
+const handleToggleLike = async (post) => {
+  try {
+    const res = await toggleLike(post.id)
+    post.is_liked = res.data.is_liked
+    post.like_count = res.data.like_count
+  } catch (e) {
+    console.error('点赞失败', e)
+  }
+}
+
+// 格式化时间
+const formatTime = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const h = String(date.getHours()).padStart(2, '0')
+  const min = String(date.getMinutes()).padStart(2, '0')
+  return `${y}-${m}-${d} ${h}:${min}`
+}
+
+// 发布成功回调
+const handlePostCreated = () => {
+  showCreatePost.value = false
+  loadPosts()
+}
+
+onMounted(() => {
+  loadPosts()
+})
 
 const trendingTopics = ref([
   { name: '#WorldLine_Divergence', heat: '1.048596%' },
@@ -591,6 +619,15 @@ const trendingTopics = ref([
 }
 
 .text-btn:hover { color: #58a6ff; }
+.text-btn.liked { color: #f85149; }
+
+.loading-hint,
+.empty-hint {
+  text-align: center;
+  padding: 40px;
+  color: #8b949e;
+  font-size: 14px;
+}
 
 /* Widget */
 .widget-panel {
