@@ -78,17 +78,18 @@
           </div>
         </div>
 
-        <!-- 在线用户列表 -->
+        <!-- 成员列表 -->
         <div class="panel-section members-section">
           <div class="section-header">
-            <span class="section-title">在线成员</span>
-            <span class="member-count">{{ onlineUsers.length }}</span>
+            <span class="section-title">成员列表</span>
+            <span class="member-count">{{ sortedMembers.length }}</span>
           </div>
           <CustomScrollbar class="member-list-scroll">
             <div 
-              v-for="user in onlineUsers" 
+              v-for="user in sortedMembers" 
               :key="user.id" 
               class="member-item"
+              :class="{ offline: !user.isOnline }"
             >
               <div class="member-avatar" :style="{ borderColor: getUserColor(user.id) }">
                 <img v-if="user.avatar" :src="user.avatar" :alt="user.name" />
@@ -97,10 +98,11 @@
               <div class="member-info">
                 <span class="member-name" :style="{ color: getUserColor(user.id) }">{{ user.name }}</span>
                 <span v-if="user.is_bot" class="bot-badge">BOT</span>
+                <span v-if="user.isOnline" class="online-badge">在线</span>
               </div>
             </div>
-            <div v-if="onlineUsers.length === 0" class="no-members">
-              <span>暂无在线成员</span>
+            <div v-if="sortedMembers.length === 0" class="no-members">
+              <span>暂无成员</span>
             </div>
           </CustomScrollbar>
         </div>
@@ -149,7 +151,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, watch } from 'vue'
+import { ref, nextTick, watch, computed } from 'vue'
 import { uploadFile } from '../api/upload'
 import StickerPicker from './StickerPicker.vue'
 import CustomScrollbar from './CustomScrollbar.vue'
@@ -187,6 +189,10 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  allUsers: {
+    type: Array,
+    default: () => []
+  },
   announcement: {
     type: String,
     default: ''
@@ -209,6 +215,13 @@ const getAvatarChar = (name) => {
   if (!name) return '??'
   return name.substring(0, 2)
 }
+
+// 排序成员列表：在线优先
+const onlineIds = computed(() => new Set(props.onlineUsers.map(u => u.id)))
+const sortedMembers = computed(() => {
+  const members = props.allUsers.map(u => ({ ...u, isOnline: onlineIds.value.has(u.id) }))
+  return members.sort((a, b) => b.isOnline - a.isOnline)
+})
 
 const emit = defineEmits(['back', 'send', 'sendFile', 'sendSticker'])
 
@@ -550,6 +563,25 @@ defineExpose({
   padding: 1px 4px;
   border-radius: 2px;
   font-weight: bold;
+}
+
+.online-badge {
+  background: #238636;
+  color: #fff;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+/* 离线状态 */
+.member-item.offline .member-avatar {
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+
+.member-item.offline .member-name {
+  color: #484f58 !important;
 }
 
 .no-members {

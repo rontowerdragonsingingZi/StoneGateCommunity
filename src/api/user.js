@@ -1,4 +1,11 @@
-import { post, put, del } from './request'
+import { get, post, put, del } from './request'
+
+/**
+ * 获取所有用户列表
+ */
+export function getAllUsers() {
+  return get('/users')
+}
 
 /**
  * 用户注册（不需要JWT）

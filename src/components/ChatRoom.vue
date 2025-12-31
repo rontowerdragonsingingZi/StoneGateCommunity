@@ -7,6 +7,7 @@
     :is-connected="isConnected"
     :online-count="onlineUsers.length"
     :online-users="onlineUsers"
+    :all-users="allUsers"
     :announcement="channel?.announcement || ''"
     :show-online-count="true"
     :show-side-panel="true"
@@ -23,6 +24,7 @@ import { Message } from '@arco-design/web-vue'
 import { getEcho } from '../echo'
 import { sendMessage as apiSendMessage, getChatHistory } from '../api/chat'
 import { getToken } from '../api/request'
+import { getAllUsers } from '../api/user'
 import BaseChatRoom from './BaseChatRoom.vue'
 
 // Props
@@ -48,6 +50,7 @@ const getCurrentUser = () => {
 
 const messages = ref([])
 const onlineUsers = ref([])
+const allUsers = ref([])
 const isConnected = ref(false)
 const isLoading = ref(false)
 const currentUser = ref(getCurrentUser())
@@ -73,6 +76,16 @@ const formatTime = (isoString) => {
 
 // 格式化消息ID
 const formatId = (id) => `0x${id.toString(16).toUpperCase()}`
+
+// 加载所有用户
+const loadAllUsers = async () => {
+  try {
+    const res = await getAllUsers()
+    if (res.code === 200) allUsers.value = res.data || []
+  } catch (err) {
+    console.error('Failed to load users:', err)
+  }
+}
 
 // 加载历史消息
 const loadHistory = async () => {
@@ -231,6 +244,7 @@ watch(() => props.channel, (newChannel, oldChannel) => {
 }, { deep: true })
 
 onMounted(() => {
+  loadAllUsers()
   loadHistory()
   connectWebSocket()
 })
