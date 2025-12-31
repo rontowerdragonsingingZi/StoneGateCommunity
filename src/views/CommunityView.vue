@@ -204,6 +204,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+
+defineOptions({ name: 'CommunityView' })
 import { 
   IconHome, IconCode, IconBulb, IconMessage, 
   IconPlus, IconHeart, IconShareAlt, IconImage, IconUserGroup, IconFolder

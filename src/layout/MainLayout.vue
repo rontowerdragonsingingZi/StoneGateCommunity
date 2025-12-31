@@ -39,9 +39,9 @@
     </a-layout-header>
     <a-layout-content class="main-content">
       <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
+        <keep-alive include="HomeView,CommunityView">
           <component :is="Component" />
-        </transition>
+        </keep-alive>
       </router-view>
     </a-layout-content>
     <a-layout-footer class="footer" v-if="!isHome">
