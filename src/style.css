@@ -1,1 +1,57 @@
 /* Reset styles handled by Arco Design */
+
+/* 全局覆盖 Arco Menu 溢出弹出层样式 */
+.arco-menu-pop,
+.arco-menu-pop-header,
+.arco-menu-overflow-sub-menu {
+  background: rgba(0, 0, 0, 0.9) !important;
+  background-color: rgba(0, 0, 0, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 8px !important;
+}
+
+.arco-menu-pop .arco-menu-inner,
+.arco-menu-pop-header .arco-menu-inner,
+.arco-menu-overflow-sub-menu .arco-menu-inner {
+  background: transparent !important;
+  padding: 6px !important;
+}
+
+/* 溢出菜单项样式 */
+.arco-menu-pop .arco-menu-item,
+.arco-menu-pop-header .arco-menu-item,
+.arco-menu-overflow-sub-menu .arco-menu-item {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  font-size: 14px !important;
+  margin: 2px 0 !important;
+  padding: 10px 16px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.arco-menu-pop .arco-menu-item:hover,
+.arco-menu-pop-header .arco-menu-item:hover,
+.arco-menu-overflow-sub-menu .arco-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.arco-menu-pop .arco-menu-item.arco-menu-selected,
+.arco-menu-pop-header .arco-menu-item.arco-menu-selected,
+.arco-menu-overflow-sub-menu .arco-menu-item.arco-menu-selected {
+  background: rgba(0, 170, 255, 0.15) !important;
+  background-color: rgba(0, 170, 255, 0.15) !important;
+  color: #00aaff !important;
+}
+
+/* 小三角箭头 */
+.arco-trigger-arrow {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}

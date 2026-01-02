@@ -335,4 +335,61 @@ const handleMenuClick = (key) => {
   color: inherit !important;
   margin-right: 8px;
 }
+
+/* 菜单溢出弹出层样式 - 响应式折叠菜单 */
+.arco-trigger-popup .arco-menu,
+.arco-trigger-popup .arco-menu-pop,
+.arco-menu-pop,
+.arco-trigger-popup .arco-menu-vertical {
+  background-color: rgba(10, 15, 10, 0.95) !important;
+  border: 1px solid rgba(0, 170, 255, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 170, 255, 0.15) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 4px !important;
+}
+
+.arco-trigger-popup .arco-menu .arco-menu-inner,
+.arco-menu-pop .arco-menu-inner {
+  background: transparent !important;
+  padding: 4px 0 !important;
+}
+
+.arco-trigger-popup .arco-menu .arco-menu-item,
+.arco-menu-pop .arco-menu-item {
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  margin: 0 !important;
+  padding: 10px 20px !important;
+  border-left: 2px solid transparent;
+  transition: all 0.2s ease !important;
+}
+
+.arco-trigger-popup .arco-menu .arco-menu-item:hover,
+.arco-menu-pop .arco-menu-item:hover {
+  background: linear-gradient(90deg, rgba(0, 170, 255, 0.15) 0%, rgba(0,0,0,0) 100%) !important;
+  color: #00aaff !important;
+  text-shadow: 0 0 8px rgba(0, 170, 255, 0.6);
+  border-left: 2px solid #00aaff;
+}
+
+.arco-trigger-popup .arco-menu .arco-menu-item.arco-menu-selected,
+.arco-menu-pop .arco-menu-item.arco-menu-selected {
+  background: transparent !important;
+  color: #00aaff !important;
+}
+
+/* 溢出触发按钮样式 */
+.arco-menu-overflow-wrap .arco-menu-overflow-sub-menu-trigger {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.arco-menu-overflow-wrap .arco-menu-overflow-sub-menu-trigger:hover {
+  color: #00aaff !important;
+}
+
+/* Trigger popup 容器本身 */
+.arco-trigger-popup {
+  --color-bg-popup: rgba(10, 15, 10, 0.95);
+}
 </style>
