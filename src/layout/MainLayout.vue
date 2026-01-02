@@ -12,6 +12,9 @@
           <a-menu-item key="About">关于</a-menu-item>
         </a-menu>
         <div class="actions">
+           <!-- 通知铃铛 -->
+           <NotificationPanel v-if="userStore.user" />
+           
            <div v-if="userStore.user" class="user-profile">
              <a-dropdown trigger="hover">
                <div class="user-info">
@@ -55,6 +58,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { IconPoweroff, IconUser } from '@arco-design/web-vue/es/icon'
+import NotificationPanel from '../components/NotificationPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -161,6 +165,12 @@ const handleMenuClick = (key) => {
 :deep(.arco-menu-selected-label) {
   bottom: -18px;
   background-color: #00aaff !important;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .login-btn {
@@ -288,5 +298,41 @@ const handleMenuClick = (key) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+</style>
+
+<style>
+/* 全局样式 - Dropdown 弹出层挂载到 body，需要全局样式覆盖 */
+.arco-dropdown {
+  background-color: rgba(10, 15, 10, 0.95) !important;
+  border: 1px solid #1a331a !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(51, 255, 0, 0.1) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 0 !important;
+}
+
+.arco-dropdown-list-wrapper {
+  padding: 0 !important;
+}
+
+.arco-dropdown-option {
+  color: #88aa88 !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  transition: all 0.2s !important;
+  border-left: 2px solid transparent !important;
+  padding: 10px 16px !important;
+  background: transparent !important;
+}
+
+.arco-dropdown-option:hover {
+  background: linear-gradient(90deg, rgba(51, 255, 0, 0.15) 0%, rgba(0,0,0,0) 100%) !important;
+  color: #33ff00 !important;
+  text-shadow: 0 0 8px rgba(51, 255, 0, 0.6);
+  border-left: 2px solid #33ff00 !important;
+}
+
+.arco-dropdown-option .arco-icon {
+  color: inherit !important;
+  margin-right: 8px;
 }
 </style>
