@@ -76,7 +76,13 @@
           <div class="header-actions">
              <div class="search-box">
                <span class="search-icon">></span>
-               <input type="text" placeholder="搜索关键词..." />
+               <input 
+                 v-model="searchKeyword" 
+                 type="text" 
+                 placeholder="搜索标题/内容..." 
+                 @keyup.enter="handleSearch"
+               />
+               <button v-if="searchKeyword" class="search-clear" @click="clearSearch">×</button>
              </div>
              <button class="action-btn new-post" @click="showCreatePost = true">
               <icon-plus /> 新建帖子
@@ -263,6 +269,8 @@ const selectedPost = ref(null)
 const selectedChannel = ref(null)
 const selectedFriend = ref(null)
 const selectedMyChannel = ref(null)
+const searchKeyword = ref('')
+const isSearching = ref(false)
 
 // 进入频道
 const handleEnterChannel = (channel) => {
@@ -295,16 +303,34 @@ const handleBackToMyChannels = () => {
 }
 
 // 加载帖子
-const loadPosts = async () => {
+const loadPosts = async (search = '') => {
   loading.value = true
   try {
-    const res = await getPosts({ limit: 20 })
+    const params = { limit: 20 }
+    if (search) {
+      params.search = search
+    }
+    const res = await getPosts(params)
     posts.value = res.data.items || []
+    isSearching.value = !!search
   } catch (e) {
     console.error('加载帖子失败', e)
   } finally {
     loading.value = false
   }
+}
+
+// 搜索帖子
+const handleSearch = () => {
+  const keyword = searchKeyword.value.trim()
+  loadPosts(keyword)
+}
+
+// 清除搜索
+const clearSearch = () => {
+  searchKeyword.value = ''
+  isSearching.value = false
+  loadPosts()
 }
 
 // 点赞/取消点赞
@@ -545,9 +571,21 @@ const trendingTopics = ref([
   border: none;
   color: #c9d1d9;
   outline: none;
-  width: 100%;
+  flex: 1;
   font-family: inherit;
   font-size: 13px;
+}
+.search-clear {
+  background: transparent;
+  border: none;
+  color: #8b949e;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 4px;
+  line-height: 1;
+}
+.search-clear:hover {
+  color: #f85149;
 }
 
 .action-btn {

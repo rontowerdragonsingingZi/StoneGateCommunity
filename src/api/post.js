@@ -3,6 +3,7 @@ import { get, post, put, del } from './request'
 /**
  * 获取帖子列表
  * @param {Object} params - 查询参数
+ * @param {string} [params.search] - 搜索关键词（标题和内容）
  * @param {string} [params.tag] - 标签筛选：THEORY/TECH/MISSION/GENERAL
  * @param {number} [params.user_id] - 按作者筛选
  * @param {number} [params.limit] - 每页数量，默认20
