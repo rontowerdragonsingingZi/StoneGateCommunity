@@ -232,10 +232,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { getPosts, toggleLike } from '../api/post'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { getPosts, toggleLike, getPost } from '../api/post'
 
 defineOptions({ name: 'CommunityView' })
+
+const route = useRoute()
+const router = useRouter()
 import { 
   IconHome, IconCode, IconBulb, IconMessage, 
   IconPlus, IconHeart, IconShareAlt, IconImage, IconUserGroup, IconFolder
@@ -335,11 +339,14 @@ const handlePostCreated = () => {
 // 打开帖子详情
 const handleOpenPost = (post) => {
   selectedPost.value = post
+  // 更新 URL（不触发页面刷新）
+  router.push({ name: 'PostDetail', params: { postId: post.id } })
 }
 
 // 返回列表
 const handleBackToList = () => {
   selectedPost.value = null
+  router.push({ name: 'Community' })
 }
 
 // 截断内容
@@ -348,6 +355,25 @@ const truncateContent = (content, maxLen = 150) => {
   const text = content.replace(/\n/g, ' ')
   return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
 }
+
+// 监听路由参数，支持直接访问帖子链接
+watch(
+  () => route.params.postId,
+  async (postId) => {
+    if (postId) {
+      // 直接访问帖子链接
+      try {
+        const res = await getPost(Number(postId))
+        if (res.code === 200 && res.data) {
+          selectedPost.value = res.data
+        }
+      } catch (e) {
+        console.error('加载帖子失败', e)
+      }
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   loadPosts()

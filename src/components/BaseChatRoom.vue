@@ -58,6 +58,22 @@
               <div v-else-if="msg.type === 'sticker'" class="msg-sticker">
                 <img :src="msg.text" alt="sticker" />
               </div>
+              <!-- 帖子分享卡片 -->
+              <div v-else-if="msg.type === 'post_share'" class="msg-post-share" @click="openPost(msg.postData)">
+                <div class="post-card">
+                  <div class="post-card-cover" v-if="msg.postData?.cover">
+                    <img :src="msg.postData.cover" alt="cover" />
+                  </div>
+                  <div class="post-card-info">
+                    <div class="post-card-title">{{ msg.postData?.title || '观测日志' }}</div>
+                    <div class="post-card-desc">{{ msg.postData?.content || '' }}</div>
+                    <div class="post-card-author">@{{ msg.postData?.author || 'Unknown' }}</div>
+                  </div>
+                </div>
+                <div class="post-share-message" v-if="msg.postData?.message">
+                  “{{ msg.postData.message }}”
+                </div>
+              </div>
               <!-- 系统消息 -->
               <p v-else-if="msg.type === 'system'" class="system-msg">{{ msg.text }}</p>
             </div>
@@ -152,9 +168,12 @@
 
 <script setup>
 import { ref, nextTick, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { uploadFile } from '../api/upload'
 import StickerPicker from './StickerPicker.vue'
 import CustomScrollbar from './CustomScrollbar.vue'
+
+const router = useRouter()
 
 const props = defineProps({
   title: {
@@ -311,6 +330,13 @@ const toggleStickerPicker = () => {
 const handleStickerSelect = (sticker) => {
   emit('sendSticker', sticker)
   showStickerPicker.value = false
+}
+
+// 打开帖子详情
+const openPost = (postData) => {
+  if (postData?.post_id) {
+    router.push({ name: 'PostDetail', params: { postId: postData.post_id } })
+  }
 }
 
 // 监听消息变化，自动滚动
@@ -814,6 +840,82 @@ defineExpose({
   max-width: 120px;
   max-height: 120px;
   object-fit: contain;
+}
+
+/* 帖子分享卡片 */
+.msg-post-share {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.msg-post-share:hover {
+  transform: scale(1.02);
+}
+
+.post-card {
+  display: flex;
+  gap: 12px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 260px;
+  max-width: 320px;
+}
+
+.post-card-cover {
+  width: 80px;
+  height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #161b22;
+}
+
+.post-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.post-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.post-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c9d1d9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-card-desc {
+  font-size: 11px;
+  color: #8b949e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
+}
+
+.post-card-author {
+  font-size: 11px;
+  color: #58a6ff;
+}
+
+.post-share-message {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #7ee787;
+  font-style: italic;
 }
 
 /* 图片预览 */

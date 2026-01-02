@@ -13,7 +13,15 @@ const routes = [
       {
         path: 'community',
         name: 'Community',
-        component: () => import('../views/CommunityView.vue')
+        component: () => import('../views/CommunityView.vue'),
+        children: [
+          {
+            path: 'post/:postId',
+            name: 'PostDetail',
+            component: () => import('../views/CommunityView.vue'),
+            props: true
+          }
+        ]
       }
     ]
   },

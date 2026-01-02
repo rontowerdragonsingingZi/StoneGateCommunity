@@ -75,10 +75,20 @@
           <span class="action-icon">✉</span>
           <span class="action-text">{{ post.comment_count }} COMMENTS</span>
         </button>
-        <button class="action-btn">
-          <span class="action-icon">↗</span>
-          <span class="action-text">SHARE</span>
-        </button>
+        <a-dropdown trigger="click" position="bottom">
+          <button class="action-btn">
+            <span class="action-icon">↗</span>
+            <span class="action-text">SHARE</span>
+          </button>
+          <template #content>
+            <a-doption @click="handleCopyLink">
+              复制链接
+            </a-doption>
+            <a-doption @click="showSharePanel = true">
+              转发给好友
+            </a-doption>
+          </template>
+        </a-dropdown>
       </div>
 
       <!-- 评论区 -->
@@ -187,15 +197,24 @@
     <div v-else class="error-state">
       <span>>> ERROR: LOG_NOT_FOUND_IN_WORLDLINE</span>
     </div>
+
+    <!-- 转发面板 -->
+    <SharePostPanel
+      v-model:visible="showSharePanel"
+      :post="post"
+      @success="handleShareSuccess"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { Message } from '@arco-design/web-vue'
 import { getPost, toggleLike } from '../api/post'
 import { getComments, createComment, deleteComment, toggleCommentLike } from '../api/comment'
 import { getToken } from '../api/request'
 import CustomScrollbar from './CustomScrollbar.vue'
+import SharePostPanel from './SharePostPanel.vue'
 
 const props = defineProps({
   postId: {
@@ -208,6 +227,35 @@ const emit = defineEmits(['back', 'updated'])
 
 const post = ref(null)
 const loading = ref(true)
+const showSharePanel = ref(false)
+
+// 转发成功回调
+const handleShareSuccess = (data) => {
+  // 更新转发数
+  if (post.value && data?.success_count) {
+    post.value.share_count = (post.value.share_count || 0) + data.success_count
+  }
+  emit('updated')
+}
+
+// 复制外链
+const handleCopyLink = async () => {
+  if (!post.value?.id) return
+  const url = `${window.location.origin}/community/post/${post.value.id}`
+  try {
+    await navigator.clipboard.writeText(url)
+    Message.success('链接已复制')
+  } catch (e) {
+    // 回退方案
+    const textarea = document.createElement('textarea')
+    textarea.value = url
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textarea)
+    Message.success('链接已复制')
+  }
+}
 const comments = ref([])
 const loadingComments = ref(false)
 const commentContent = ref('')

@@ -78,17 +78,28 @@ const loadHistory = async () => {
   try {
     const res = await getPrivateChatHistory({ friendId: props.friend.id, limit: 50 })
     if (res.code === 200 && res.data?.items) {
-      messages.value = res.data.items.map(msg => ({
-        id: formatId(msg.id),
-        rawId: msg.id,
-        author: msg.sender?.name || 'Unknown',
-        avatarChar: getAvatarChar(msg.sender?.name),
-        color: getUserColor(msg.sender?.id || 0),
-        time: formatTime(msg.created_at),
-        text: msg.content,
-        type: msg.type || 'text',
-        isSelf: msg.sender?.id === currentUser.value?.id
-      }))
+      messages.value = res.data.items.map(msg => {
+        const base = {
+          id: formatId(msg.id),
+          rawId: msg.id,
+          author: msg.sender?.name || 'Unknown',
+          avatarChar: getAvatarChar(msg.sender?.name),
+          color: getUserColor(msg.sender?.id || 0),
+          time: formatTime(msg.created_at),
+          text: msg.content,
+          type: msg.type || 'text',
+          isSelf: msg.sender?.id === currentUser.value?.id
+        }
+        // 解析帖子分享消息
+        if (msg.type === 'post_share') {
+          try {
+            base.postData = JSON.parse(msg.content)
+          } catch (e) {
+            base.postData = { title: '观测日志', content: msg.content }
+          }
+        }
+        return base
+      })
     }
   } catch (err) {
     console.error('Failed to load private chat history:', err)
@@ -171,7 +182,7 @@ const connectWebSocket = () => {
         // 避免重复添加自己的消息
         if (e.sender?.id === currentUser.value?.id) return
         
-        messages.value.push({
+        const newMsg = {
           id: formatId(e.id),
           rawId: e.id,
           author: e.sender?.name || 'Unknown',
@@ -181,7 +192,16 @@ const connectWebSocket = () => {
           text: e.content,
           type: e.type || 'text',
           isSelf: false
-        })
+        }
+        // 解析帖子分享消息
+        if (e.type === 'post_share') {
+          try {
+            newMsg.postData = JSON.parse(e.content)
+          } catch (err) {
+            newMsg.postData = { title: '观测日志', content: e.content }
+          }
+        }
+        messages.value.push(newMsg)
       })
       .error((error) => {
         console.error('WebSocket error:', error)
