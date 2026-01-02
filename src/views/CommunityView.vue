@@ -361,7 +361,14 @@ watch(
   () => route.params.postId,
   async (postId) => {
     if (postId) {
-      // 直接访问帖子链接
+      // 切换到观测日志页面
+      activeKey.value = '1'
+      // 清除其他选中状态
+      selectedFriend.value = null
+      selectedChannel.value = null
+      selectedMyChannel.value = null
+      showCreatePost.value = false
+      // 加载帖子详情
       try {
         const res = await getPost(Number(postId))
         if (res.code === 200 && res.data) {

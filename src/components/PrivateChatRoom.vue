@@ -7,6 +7,7 @@
     :is-connected="isConnected"
     :online-count="0"
     :show-online-count="false"
+    :show-side-panel="false"
     @back="$emit('back')"
     @send="sendMessage"
     @send-file="sendFileMessage"

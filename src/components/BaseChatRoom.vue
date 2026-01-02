@@ -335,7 +335,7 @@ const handleStickerSelect = (sticker) => {
 // 打开帖子详情
 const openPost = (postData) => {
   if (postData?.post_id) {
-    router.push({ name: 'PostDetail', params: { postId: postData.post_id } })
+    window.location.href = `/community/post/${postData.post_id}`
   }
 }
 
