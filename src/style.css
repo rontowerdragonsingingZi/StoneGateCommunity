@@ -55,3 +55,8 @@
   background: rgba(0, 0, 0, 0.9) !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
 }
+
+/* 隐藏 Live2D 对话框 */
+#oml2d-tips {
+  display: none !important;
+}

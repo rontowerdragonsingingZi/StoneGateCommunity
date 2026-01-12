@@ -47,7 +47,7 @@
         </keep-alive>
       </router-view>
     </a-layout-content>
-    <a-layout-footer class="footer" v-if="!isHome">
+    <a-layout-footer class="footer" v-if="!isHome && !isCommunity">
       石头门社区 &copy; 2025 由未来道具研究所创建
     </a-layout-footer>
   </a-layout>
@@ -71,6 +71,7 @@ const handleLogout = () => {
 
 const selectedKeys = computed(() => [route.name])
 const isHome = computed(() => route.name === 'Home')
+const isCommunity = computed(() => route.name === 'Community' || route.name === 'PostDetail')
 
 const handleMenuClick = (key) => {
   if (key === 'About') {

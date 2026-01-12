@@ -64,6 +64,9 @@
             </div>
           </div>
         </div>
+
+        <!-- Live2D 容器 -->
+        <div ref="live2dContainer" class="live2d-container"></div>
       </a-layout-sider>
       
       <a-layout class="main-layout">
@@ -238,8 +241,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { loadOml2d } from 'oh-my-live2d'
 import { getPosts, toggleLike, getPost } from '../api/post'
 
 defineOptions({ name: 'CommunityView' })
@@ -260,6 +264,9 @@ import WorldlineData from '../components/WorldlineData.vue'
 import CustomScrollbar from '../components/CustomScrollbar.vue'
 import CreatePost from '../components/CreatePost.vue'
 import PostDetail from '../components/PostDetail.vue'
+
+const live2dContainer = ref(null)
+let oml2dInstance = null
 
 const activeKey = ref('1')
 const posts = ref([])
@@ -410,6 +417,44 @@ watch(
 
 onMounted(() => {
   loadPosts()
+  
+  // 初始化 Live2D
+  nextTick(() => {
+    if (live2dContainer.value) {
+      oml2dInstance = loadOml2d({
+        models: [
+          {
+            path: 'https://unpkg.com/live2d-widget-model-miku@1.0.5/assets/miku.model.json',
+            scale: 0.3,
+            position: [-30, 0],
+            stageStyle: {
+              width: 240,
+              height: 450
+            }
+          }
+        ],
+        parentElement: live2dContainer.value,
+        tips: {
+          disable: true
+        },
+        statusBar: {
+          disable: true
+        },
+        menus: {
+          disable: true
+        },
+        dockedPosition: 'left',
+        mobileDisplay: true
+      })
+    }
+  })
+})
+
+onUnmounted(() => {
+  // 清理 Live2D 实例
+  if (oml2dInstance) {
+    oml2dInstance = null
+  }
 })
 
 const trendingTopics = ref([
@@ -432,9 +477,27 @@ const trendingTopics = ref([
   color: #c9d1d9;
   font-family: 'JetBrains Mono', 'Segoe UI', monospace;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .community-container :deep(.arco-layout) {
+  height: 100%;
+  flex: 1;
+}
+
+.community-container :deep(.arco-layout-sider) {
+  overflow: hidden !important;
+  flex-shrink: 0;
+  height: auto !important;
+  max-height: 100% !important;
+}
+
+/* 隐藏侧边栏内部滚动条 */
+.community-container :deep(.arco-layout-sider-children) {
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
   height: 100%;
 }
 
@@ -448,8 +511,10 @@ const trendingTopics = ref([
 .terminal-sider {
   background: #010409 !important;
   border-right: 1px solid #30363d;
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
 }
 
 .logo-area {
@@ -491,7 +556,6 @@ const trendingTopics = ref([
 }
 
 .user-panel {
-  margin-top: auto;
   padding: 20px;
   border-top: 1px solid #30363d;
 }
@@ -523,6 +587,28 @@ const trendingTopics = ref([
 .status {
   font-size: 11px;
   color: #8b949e;
+}
+
+/* Live2D 容器 */
+.live2d-container {
+  flex: 1;
+  width: 240px;
+  min-height: 300px;
+  position: relative;
+  overflow: visible;
+}
+
+.live2d-container :deep(#oml2d-stage) {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: auto !important;
+  right: auto !important;
+}
+
+/* 强制隐藏对话框 */
+.live2d-container :deep(#oml2d-tips) {
+  display: none !important;
 }
 
 /* 主布局 */

@@ -11,6 +11,7 @@
   "dependencies": {
     "@arco-design/web-vue": "^2.55.3",
     "laravel-echo": "^2.2.6",
+    "oh-my-live2d": "^0.19.3",
     "pinia": "^2.1.7",
     "pusher-js": "^8.4.0",
     "three": "^0.166.1",
