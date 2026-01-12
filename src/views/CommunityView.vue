@@ -558,6 +558,7 @@ const trendingTopics = ref([
 .user-panel {
   padding: 20px;
   border-top: 1px solid #30363d;
+  border-bottom: 1px solid #30363d;
 }
 
 .user-line {
