@@ -54,12 +54,12 @@
             <span class="prompt">user@lab:~$</span>
             <span class="cursor">_</span>
           </div>
-          <div class="user-info">
-            <a-avatar :size="32" shape="square" class="pixel-avatar">
-              <img src="https://source.unsplash.com/random/100x100/?face" alt="User" />
+          <div class="user-info" v-if="userStore.user">
+            <a-avatar :size="32" shape="square" class="pixel-avatar" :image-url="userStore.user.avatar">
+              {{ userStore.user.name ? userStore.user.name.charAt(0).toUpperCase() : 'U' }}
             </a-avatar>
             <div class="user-details">
-              <div class="username">Phoenix Kyoma</div>
+              <div class="username">{{ userStore.user.name }}</div>
               <div class="status">Level 0: 操作员</div>
             </div>
           </div>
@@ -245,11 +245,13 @@ import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { loadOml2d } from 'oh-my-live2d'
 import { getPosts, toggleLike, getPost } from '../api/post'
+import { useUserStore } from '../stores/user'
 
 defineOptions({ name: 'CommunityView' })
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
 import { 
   IconHome, IconCode, IconBulb, IconMessage, 
   IconPlus, IconHeart, IconShareAlt, IconImage, IconUserGroup, IconFolder
